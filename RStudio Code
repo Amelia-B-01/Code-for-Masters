@@ -1,29 +1,14 @@
-<html>
-
-<head>
-<title>Title</title>
-</head>
-
-<body>
-
-\documentclass{article}
-
-\begin{document}
-\SweaveOpts{concordance=TRUE}
-
 
 ---
-title: "Regression_1st_Attempt"
-  output: html_document
+title: "Trust Data"
+output:
+  html_document: default
   pdf_document: default
-editor_options: 
-  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
 
 ```{r load_packages, include=FALSE}
 # NOTE: When we want to export this is an HTML file or a PDF we will have to include all of the packages here, this is because knitting is done in a fresh instance of R
@@ -33,30 +18,290 @@ library(magrittr)
 library(ggplot2)
 library(tidyverse)
 library(tinytex)
-library(survival)
-library(lubridate)
-library(corrplot)
-library("readxl")
-library("scales")
-library("lubridate")
-
 ```
+
+## Importing Data Using SQLite and Dplyr
+
+The first thing that we want to do is load the data into our R environment.
+
+We will create a directory by using the RODBC Package. This sets up a trusted connection between the R Session and the SQL Server. For now we can just load these data into R to manipulate later.
+
+It may be useful in the future to further refine the query in R.
 
 ```{r query}
 
+# Connect to the SQL Database. RODBC is a library which creates a secure connection. Stats has set this all up so should just work seemlessly.
+# 
+
 if(require(RODBC))
 {
-  connstr <- "DRIVER=ODBC Driver 17 for SQL Server; " # Note: in the FAQ this is the incorrect version, I had to change to 17
-  connstr <- paste0(connstr, "Trusted_Connection=Yes; ")
-  connstr <- paste0(connstr, "DATABASE=master; ") # This is just the name of the database, will always be master
-  connstr <- paste0(connstr, "SERVER=PRTPRDSQL36") # Name of the server. Same one connected to on SQL Management Studio
-  connstr <- odbcDriverConnect(connection=connstr) # Sets up the connection.
- 
+   connstr <- "DRIVER=ODBC Driver 17 for SQL Server; " # Note: in the FAQ this is the incorrect version, I had to change to 17
+   connstr <- paste0(connstr, "Trusted_Connection=Yes; ")
+   connstr <- paste0(connstr, "DATABASE=master; ") # This is just the name of the database, will always be master
+   connstr <- paste0(connstr, "SERVER=PRTPRDSQL36") # Name of the server. Same one connected to on SQL Management Studio
+   conn    <- odbcDriverConnect(connection=connstr) # Sets up the connection.
    # CHANGE THIS TO CHANGE WHICH TABLE YOU ARE ACCESSING.
   query   <- "select * from [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_IR_CENSUS]"
-  # Result object is what we get back from the database, in this case it is a DataFrame object which is just a table/
-  res <- sqlQuery(connstr, query, as.is=FALSE, believeNRows=FALSE)
+   # Result object is what we get back from the database, in this case it is a DataFrame object which is just a table/
+   res <- sqlQuery(conn, query, as.is=FALSE, believeNRows=FALSE)
 }
+
+head(res)
+
+odbcCloseAll()
+
+```
+
+
+``` {r query}
+
+counts <- table(res['gss_survey_date'])
+barplot(counts, main ="gss survey date distribution", xlab = "date")
+
+```
+
+
+## Descriptive Statistics of the Group
+
+We want to see if and how the trust measures are related to one another - there are 7 measures of trust included.
+
+- t-test between each group to see how different they are
+- 
+
+
+```{r remove_nas}
+
+measures <- c("general_trust", "police_trust", "education_trust", "media_trust", "courts_trust", "parliament_trust", "health_trust")
+
+trusts <- select(res, measures) %>% replace(.==88, NA) %>% replace(.==99, NA)
+
+Hmisc::describe(trusts)
+head(trusts)
+
+
+### Comparing the years that the GSS was conducted/
+
+WE have data from three different years. To be confident that it is appropriate to use these in aggregate as our final dataset, we should check that they have the same properties, this is testing the assumption: *trust as a measured variable has not changed within the sample over the past 6 years*.
+
+NOTE: We are in some sense making multiple comparisons, in which case we might want to make a correction for this, a common approach is the Bonferroni correction.
+
+```{r}
+
+year_measures <- c("gss_survey_date","general_trust", "police_trust", "education_trust", "media_trust", "courts_trust", "parliament_trust", "health_trust")
+measures <- c("general_trust", "police_trust", "education_trust", "media_trust", "courts_trust", "parliament_trust", "health_trust")
+
+#Get the different years
+years_trust <- select(res, year_measures) %>% replace(.==88, NA) %>% replace(.==99, NA)
+
+
+# Take a subset of all of the years
+years_trust_14 <- subset(years_trust, gss_survey_date == "GSS2014")
+years_trust_16 <- subset(years_trust, gss_survey_date == "GSS2016")
+years_trust_18 <- subset(years_trust, gss_survey_date == "GSS2018")
+
+sig_df <- data.frame(group_1=character(), group_2=character(), trust_type=character(), p_value=double(), mean_group_1=double(), mean_group_2=double())
+
+for (col in measures){
+   print(col)
+   sig_df <- rbind(sig_df, list(group_1="2014",
+      group_2="2016",
+      trust_type=col,
+      p_value = t.test(years_trust_14[col], years_trust_16[col])$p.value,
+      mean_group_1 = t.test(years_trust_14[col], years_trust_16[col])$estimate[1],
+      mean_group_2 = t.test(years_trust_14[col], years_trust_16[col])$estimate[2]
+      ), stringsAsFactors=FALSE
+   )
+   sig_df <- rbind(sig_df, list(group_1="2016",
+      group_2="2018",
+      trust_type=col,
+      p_value = t.test(years_trust_16[col], years_trust_18[col])$p.value,
+      mean_group_1 = t.test(years_trust_16[col], years_trust_18[col])$estimate[1],
+      mean_group_2 = t.test(years_trust_16[col], years_trust_18[col])$estimate[2]
+      ), stringsAsFactors=FALSE
+   )
+   sig_df <- rbind(sig_df, list(group_1="2014",
+      group_2="2018",
+      trust_type=col,
+      p_value = t.test(years_trust_14[col], years_trust_18[col])$p.value,
+      mean_group_1 = t.test(years_trust_14[col], years_trust_18[col])$estimate[1],
+      mean_group_2 = t.test(years_trust_14[col], years_trust_18[col])$estimate[2]
+      ), stringsAsFactors=FALSE
+   )
+}
+
+sig_df
+
+```
+```{r}
+t.test(trusts)
+```
+
+```{r}
+# Reshape the dataset
+stacked_trusts <- stack(trusts)
+head(stacked_trusts)
+
+#boxplot(trusts, col=rainbow(ncol(trusts)), notch=TRUE)
+ggplot(stacked_trusts, aes(x=ind, y=values)) + 
+   geom_boxplot(outlier.shape=NA) +
+   stat_boxplot(geom= "errorbar", width = 0.2) +
+   scale_x_discrete(name = "Institution") + 
+   ggtitle("Boxplot of All Trust Data")
+
+```
+## Comparing Vaccinated and Unvaccinated
+
+We want to know if there is a difference between the various trust measures in the vaccinated and unvaccinated populations.
+
+```{r}
+plots <- c("general_trust", "police_trust", "education_trust", "media_trust", "courts_trust", "parliament_trust", "health_trust", "recieved_COVID_vaccine")
+
+vax_trusts <- select(res, plots) %>% replace(.==88, NA) %>% replace(.==99, NA)
+
+head(vax_trusts)
+
+gather_vax <- pivot_longer(vax_trusts, 
+                           !recieved_COVID_vaccine,
+                           names_to="trust",
+                           values_to = "value"
+                           )
+
+gather_vax$recieved_COVID_vaccine <- as.factor(ifelse(gather_vax$recieved_COVID_vaccine == 1, 'Vaccinated', 'Unvaccinated'))
+
+#stack(select(vax_plots))
+
+#stack(data.frame(t(vax_plots)))
+#select(vax_plots, general_trust, recieved_COVID_vaccine)
+
+
+trust_plot <- ggplot(gather_vax, aes(x=recieved_COVID_vaccine, y=value)) + 
+   geom_boxplot() + 
+   facet_grid(~trust) + 
+   labs(x = "Vaccination Status", y = "Level of Trust", title= "Comparison of Vaccination Status") + 
+   theme_gray(base_size = 10) +
+   stat_boxplot(geom= "errorbar", width = 0.2) + 
+   theme(axis.text.x = element_text(angle=-70))
+
+plot(trust_plot)
+```
+
+
+## Statistical Tests
+
+We are going to start by testing the assumptions of an independent t-test, namely that the two samples are independent and that the responses for each trust variable follow a normal distribution.
+
+NEED TO TEST THIS FOR ALL MEASURES
+
+```{r}
+with(vax_trusts, shapiro.test(general_trust[recieved_COVID_vaccine==0]))
+#with(vax_trusts, shapiro.test(general_trust[recieved_COVID_vaccine==1]))
+```
+
+### t-test
+
+NEED TO DO FOR ALL MEASURES
+```{r}
+
+head(vax_trusts)
+
+trusts_vax <- subset(vax_trusts, recieved_COVID_vaccine == 1)
+trusts_unvax <- subset(vax_trusts, recieved_COVID_vaccine == 0)
+
+head(trusts_vax)
+head(trusts_unvax)
+
+general <- t.test(trusts_vax$general_trust, trusts_unvax$general_trust)
+health <- t.test(trusts_vax$health_trust, trusts_unvax$health_trust)
+police <- t.test(trusts_vax$police_trust, trusts_unvax$police_trust)
+education <- t.test(trusts_vax$education_trust, trusts_unvax$education_trust)
+media <- t.test(trusts_vax$media_trust, trusts_unvax$media_trust)
+courts <- t.test(trusts_vax$courts_trust, trusts_unvax$courts_trust)
+parliament <- t.test(trusts_vax$parliament_trust, trusts_unvax$parliament_trust)
+
+
+#t.test(trusts_vax$general_trust, trusts_unvax$general_trust)
+
+print(general)
+print(health)
+print(police)
+print(education)
+print(media)
+print(courts)
+print(parliament)
+
+#tests
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+
+cor(trusts)
+
+library(Hmisc)
+# create matrix of correlation coefficents and p-values
+rcorr(as.matrix(trusts),
+
+library(survival),
+library(Hmisc),
+
+cor(trusts),
+
+# using cor(trusts) creates lots of NA values. I am going to try use an addition to remove these NA values
+
+cor(trusts, use="pairwise.complete.obs"),
+
+library("writexl"),
+
+print(Hmisc::describe(trusts)),
+
+install.packages("openxlsx", dependencies = TRUE)
+
+```
+
+```{r}
+
+#So now I am going to attempt to create individual box plots, to try and understand why 3 of my boxplots look the same. 
+
+boxplot(trusts$general_trust)
+boxplot(trusts$education_trust)
+boxplot(trusts$health_trust)
+boxplot(trusts$media_trust)
+
+#Hmmm ok so it does seem to work as intended. But I am just very sceptical that it actually is the right option. 
+```
+
+```{r}
+
+#Ok now I am trying out making a histogram of each domain, to see if perhaps the data is somehow the same
+
+hist(trusts$general_trust)
+hist(trusts$education_trust)
+boxplot(trusts$education_trust)
+
+
+
+```
+
+
+```{r}
+# Ok now I am going to try calculate the quantiles manually
+
+#quantile(general_trust)
+print(health)
+print(education)
+print(courts)
+
+```
+
+```{r}
+
+#Getting started trying to perform some basic regressions
+
+library(tidyverse)
+library(dplyr)
+
+model_1 <- lm(trusts(media_trust) ~ gender_code + personal_income + cir)
 
 
 head(res)
