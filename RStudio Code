@@ -1,0 +1,873 @@
+<html>
+
+<head>
+<title>Title</title>
+</head>
+
+<body>
+
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+
+---
+title: "Regression_1st_Attempt"
+  output: html_document
+  pdf_document: default
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r load_packages, include=FALSE}
+# NOTE: When we want to export this is an HTML file or a PDF we will have to include all of the packages here, this is because knitting is done in a fresh instance of R
+library(dplyr)
+#library(Hmisc) # For some reason this isn't installing but when I run the describe function explicitly calling it after installing in the packages sidebar it works fine.
+library(magrittr)
+library(ggplot2)
+library(tidyverse)
+library(tinytex)
+library(survival)
+library(lubridate)
+library(corrplot)
+library("readxl")
+library("scales")
+library("lubridate")
+
+```
+
+```{r query}
+
+if(require(RODBC))
+{
+  connstr <- "DRIVER=ODBC Driver 17 for SQL Server; " # Note: in the FAQ this is the incorrect version, I had to change to 17
+  connstr <- paste0(connstr, "Trusted_Connection=Yes; ")
+  connstr <- paste0(connstr, "DATABASE=master; ") # This is just the name of the database, will always be master
+  connstr <- paste0(connstr, "SERVER=PRTPRDSQL36") # Name of the server. Same one connected to on SQL Management Studio
+  connstr <- odbcDriverConnect(connection=connstr) # Sets up the connection.
+ 
+   # CHANGE THIS TO CHANGE WHICH TABLE YOU ARE ACCESSING.
+  query   <- "select * from [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_IR_CENSUS]"
+  # Result object is what we get back from the database, in this case it is a DataFrame object which is just a table/
+  res <- sqlQuery(connstr, query, as.is=FALSE, believeNRows=FALSE)
+}
+
+
+head(res)
+str(res)
+    
+# Here I am transforming all the relevant variables into either numeric or factors. 
+
+res$health_trust=as.numeric(res$health_trust)
+res$parliament_trust=as.numeric(res$parliament_trust)
+res$courts_trust=as.numeric(res$courts_trust)
+res$media_trust=as.numeric(res$media_trust)
+res$education_trust=as.numeric(res$education_trust)
+res$police_trust=as.numeric(res$police_trust)
+res$general_trust=as.numeric(res$general_trust)
+res$birth_year=as.numeric(res$birth_year)
+res$birth_month=as.numeric(res$birth_month)
+res$dhb_domicile=as.factor(res$dhb_domicile)
+res$meshblock=as.factor(res$meshblock)
+res$deprivation_index_decile=as.numeric(res$deprivation_index_decile)
+res$deprivation_index_quintile=as.numeric(res$deprivation_index_quintile)
+res$non_resident=as.factor(res$non_resident)
+res$education=as.factor(res$education)
+res$cir_first_vaccine_date=as.factor(res$cir_first_vaccine_date)
+res$fully_vaccinated_date=as.factor(res$fully_vaccinated_date)
+res$recieved_COVID_vaccine=as.factor(res$recieved_COVID_vaccine)
+res$eligible_for_COVID_vaccine=as.factor(res$eligible_for_COVID_vaccine)
+res$birth_place=as.factor(res$birth_place)
+res$religion=as.factor(res$religion)
+res$number_languages_spoken=as.numeric(res$number_languages_spoken)
+res$religion=as.factor(res$religion)
+res$disabled=as.factor(res$disabled)
+res$smoker=as.factor(res$smoker)
+res$partnership_status=as.factor(res$partnership_status)
+res$X2019_total_earning_wage_salaries=as.numeric(res$X2019_total_earning_wage_salaries)
+res$X2020_total_earning_wage_salaries=as.numeric(res$X2020_total_earning_wage_salaries)
+res$X2020_total_benefits=as.numeric(res$X2020_total_benefit)
+res$X2020_sole_trader_income=as.numeric(res$X2020_sole_trader_income)
+res$migrant_status=as.numeric(res$migrant_status)
+res$labour_force_status=as.numeric(res$labour_force_status)
+res$marital_status=as.numeric(res$marital_status)
+res$family_status=as.numeric(res$family_status)
+res$household_income=as.numeric(res$household_income)
+res$highest_qual=as.numeric(res$highest_qual)
+res$life_satisfaction=as.numeric(res$life_satisfaction)
+res$health_status=as.numeric(res$health_status)
+res$being_yourself=as.numeric(res$being_yourself)
+res$neighbour_queer=as.numeric(res$neighbour_queer)
+res$neighbour_ethnicity=as.numeric(res$neighbour_ethnicity)
+res$neighbour_mental=as.numeric(res$neighbour_mental)
+res$neighbour_language=as.numeric(res$neighbour_language)
+res$neighbour_disabled=as.numeric(res$neighbour_disabled)
+res$neighbour_immigrant=as.numeric(res$neighbour_immigrant)
+res$discrimination=as.numeric(res$discrimination)
+res$personal_income=as.numeric(res$personal_income)
+res$crime_concerns=as.numeric(res$crime_concerns)
+res$vote_in_last_election=as.factor(res$vote_in_last_election)
+res$enrolled_last_election=as.factor(res$enrolled_last_election)
+res$reason_for_not_voting=as.factor(res$reason_for_not_voting)
+res$reason_for_not_enrolled=as.factor(res$reason_for_not_enrolled)
+
+
+str(res)
+
+```
+
+```{r query}
+
+# Here I am going to build a new dataset with the relevant variables.  
+
+master_data <- res[,c(
+  "snz_uid",
+  "gender",
+  "birth_year", 
+  "birth_month",
+  "prioritised_ethnicity",
+  "dhb_domicile",
+  "meshblock", 
+  "deprivation_index_decile", 
+  "deprivation_index_quintile",
+  "non_resident",
+  "recieved_COVID_vaccine", 
+  "eligible_for_COVID_vaccine",
+  "first_vaccine_date", 
+  "last_vaccine_date", 
+  "cir_first_vaccine_date",
+  "fully_vaccinated_date",
+  "birth_place", 
+  "languages_spoken",
+  "number_languages_spoken", 
+  "religion", 
+  "disabled", 
+  "education",
+  "smoker", 
+  "partnership_status",
+  "X2019_total_earning_wage_salaries",
+  "X2020_total_earning_wage_salaries",
+  "X2020_total_benefits",
+  "X2020_sole_trader_income",
+  "gss_survey_date",           
+  "general_trust", 
+  "police_trust", 
+  "education_trust",
+  "media_trust",
+  "courts_trust", 
+  "parliament_trust", 
+  "health_trust",
+  "migrant_status",
+  "labour_force_status",
+  "marital_status",
+  "family_status",
+  "household_income",
+  "highest_qual",
+  "life_satisfaction",
+  "health_status",
+  "being_yourself",
+  "neighbour_queer",
+  "neighbour_ethnicity",
+  "neighbour_mental",
+  "neighbour_language",
+  "neighbour_disabled",
+  "neighbour_immigrant",
+  "discrimination",
+  "personal_income",
+  "crime_concerns",
+  "vote_in_last_election",
+  "reason_for_not_voting",
+  "enrolled_last_election",
+  "reason_for_not_enrolled"
+  
+  )]
+
+str(master_data)
+
+# Here I remove 88 and 99 from my trust columns. These values represent instances where individuals either 'refused to answer' or 'didn't know'. Either way, these are not useful for my analysis
+
+cols_to_modify <- c("general_trust", "police_trust", "education_trust", "media_trust", "courts_trust", "parliament_trust", "health_trust", "neighbour_queer", "neighbour_ethnicity", "neighbour_mental", "neighbour_language", "neighbour_disabled", "neighbour_immigrant", "discrimination", "reason_for_not_enrolled", "enrolled_last_election", "reason_for_not_voting", "vote_in_last_election", "crime_concerns", "being_yourself", "health_status", "life_satisfaction", "highest_qual", "family_status", "labour_force_status", "migrant_status"
+                    )
+for (col in cols_to_modify) {
+  master_data[, col] <- ifelse(master_data[, col] %in% c(99, 88, 77), NA, master_data[, col])
+}
+
+
+names(master_data)
+names(master_data)[22] <- "partnership_status"
+names(master_data)[23] <- "X2019_total_earnings"
+names(master_data)[24] <- "X2020_total_earnings"
+names(master_data)[25] <- "X2020_total_benefits"
+names(master_data)[26] <- "X2020_sole_trader_income"
+
+names(master_data)
+
+master_data$partnership_status=as.factor(master_data$partnership_status)
+master_data$X2019_total_earnings=as.numeric(master_data$X2019_total_earnings)
+master_data$X2020_total_earnings=as.numeric(master_data$X2020_total_earnings)
+
+master_data$cir_first_vaccine_date=as.Date(master_data$cir_first_vaccine_date)
+master_data$fully_vaccinated_date=as.Date(master_data$fully_vaccinated_date)
+
+master_data$X2020_total_benefits=as.numeric(master_data$X2020_total_benefits)
+master_data$X2020_sole_trader_income=as.numeric(master_data$X2020_sole_trader_income)
+
+master_data$migrant_status=as.numeric(master_data$migrant_status)
+master_data$labour_force_status=as.numeric(master_data$labour_force_status)
+master_data$marital_status=as.numeric(master_data$marital_status)
+master_data$family_status=as.numeric(master_data$family_status)
+master_data$household_income=as.numeric(master_data$household_income)
+master_data$highest_qual=as.numeric(master_data$highest_qual)
+master_data$life_satisfaction=as.numeric(master_data$life_satisfaction)
+master_data$health_status=as.numeric(master_data$health_status)
+master_data$being_yourself=as.numeric(master_data$being_yourself)
+
+master_data$neighbour_queer=as.numeric(master_data$neighbour_queer)
+master_data$neighbour_ethnicity=as.numeric(master_data$neighbour_ethnicity)
+master_data$neighbour_mental=as.numeric(master_data$neighbour_mental)
+master_data$neighbour_language=as.numeric(master_data$neighbour_language)
+master_data$neighbour_disabled=as.numeric(master_data$neighbour_disabled)
+master_data$neighbour_immigrant=as.numeric(master_data$neighbour_immigrant)
+master_data$education=as.numeric(master_data$education)
+
+master_data$discrimination=as.numeric(master_data$discrimination)
+master_data$personal_income=as.numeric(master_data$personal_income)
+master_data$crime_concerns=as.numeric(master_data$crime_concerns)
+
+master_data$vote_in_last_election=as.factor(master_data$vote_in_last_election)
+master_data$enrolled_last_election=as.factor(master_data$enrolled_last_election)
+
+master_data$reason_for_not_voting=as.factor(master_data$reason_for_not_voting)
+master_data$reason_for_not_enrolled=as.factor(master_data$reason_for_not_enrolled)
+
+str(master_data)
+
+counts <- table(master_data$being_yourself)
+counts
+names(master_data)
+
+
+```{r query }
+
+# The Census allows for hundreds of different religions or language combinations. However, I want to remove all variables which have fewer than 5 people associated
+freq <- table(master_data$religion)
+to_remove <- names(freq[freq <5])
+master_data$religion[master_data$religion %in% to_remove] <- NA
+
+freq <- table(master_data$languages_spoken)
+to_remove <- names(freq[freq <5])
+master_data$languages_spoken[master_data$languages_spoken %in% to_remove] <- NA
+
+master_data$gender <- as.factor(master_data$gender)
+levels(master_data$gender)[levels(master_data$gender)=='U'] <- NA
+
+```
+
+
+# Creating a new variable which expresses whether someone is vaccinated or not
+recieved_COVID_vaccine <- ifelse(master_data$recieved_COVID_vaccine == 0, "Not Vaccinated", "Vaccinated")
+recieved_COVID_vaccine <- as.factor(master_data$recieved_COVID_vaccine)
+
+# Calculating an individual's age as of the 1 Dec 2021
+age_dec <- as.integer(interval(as.Date(paste(master_data$birth_year, master_data$birth_month, '01', sep = '-')), as.Date("2021-12-01"))/years(1))
+```
+# Adding the age into our master_dataset
+master_data_1 <- cbind(
+  
+  master_data, 
+  age_dec
+                       )
+str(master_data_1) 
+names(master_data_1)
+
+#Count number of individuals who asnwered at least one question on trust. 
+master_data_2 <- master_data_1[rowSums(!is.na(master_data_1[, 30:36])) >= 1,]
+
+#Determine vaccination status on 10th October 2021. 
+master_data_2$vax_status_10_10 <- ifelse(is.na(master_data_2$first_vaccine_date) | master_data_2$first_vaccine_date >= as.Date("2021-10-10"), 0, 1)
+master_data_2$vax_status_10_10=as.factor(master_data_2$vax_status_10_10)
+master_data_2$cir_first_vaccine_date=as.Date(master_data_2$cir_first_vaccine_date)
+master_data_2$fully_vaccinated_date=as.Date(master_data_2$fully_vaccinated_date)
+
+trust_table <- table(master_data_2$general_trust)
+print(trust_table)
+
+str(master_data_2)
+
+mytable <- sapply(master_data_2, table)
+#print(mytable)
+
+
+# Scatterplot between date of vaccination and trust levels. 
+
+vac_date_model <- lm(media_trust ~ first_vaccine_date, data = master_data_2)
+summary(vac_date_model) 
+
+vac_date_df <- master_data_1[,c ("general_trust", 
+                                 "police_trust",
+                                 "education_trust",
+                                 "media_trust",
+                                 "courts_trust",
+                                 "parliament_trust",
+                                 "health_trust",
+                                 "first_vaccine_date"
+                                 )]
+
+
+ggplot(vac_date_df, aes(x=first_vaccine_date, y=general_trust)) + 
+  geom_point() +
+  scale_x_date(limits =as.Date(c("2021-01-01", "2021-11-01")))
+ # xlab("Date of first vaccination") + 
+ # ylab("General Trust")
+
+
+  vac_date_df %>%
+    mutate(first_vaccine_date = ymd(first_vaccine_date)) %>%
+    ggplot(aes(x=first_vaccine_date, y=general_trust)) + 
+    geom_point() +
+    scale_x_date(limits =as.Date(c("2021-01-01", "2021-11-01")))
+    
+    stat_summary(fun = "mean", colour = "red", size = 2, geom = "line")
+
+
+```
+
+```{r query}
+
+# Here I export my master_dataset to excel, so I can continue to work on it in Stata. I realised that it would be easier to do in Stata. 
+names(master_data_2)
+master_data_2_weekly_trust <- select(master_data_2, cir_first_vaccine_date, fully_vaccinated_date, general_trust, police_trust, education_trust, media_trust, courts_trust, parliament_trust, health_trust)
+names(master_data_2_weekly_trust)
+
+master_data_2_stata <- select(snzuid, gender, prioritised_ethnicity, deprivation_index_decile, age_dec, recieved_COVID_vaccine, disabled, X2020_total_benefits, life_satisfaction, neighbour_queer, neighbour_ethnicity, master_data_2, cir_first_vaccine_date, fully_vaccinated_date, general_trust, police_trust, education_trust, media_trust, courts_trust, parliament_trust, health_trust)
+#write.xlsx(master_data_2_weekly_trust, "Weekly_Trusts.xlsx", sheetName = "Sheet1", row.names = TRUE)
+
+library("xlsx")
+write.csv(master_data_2, "Master_Data_2.csv", row.names = TRUE)
+#write.xlsx(master_data_2_weekly_trust, "Weekly_Trusts.xlsx", sheetName = "Sheet1", row.names = TRUE)
+
+library("readxl")
+library("ggplot2")
+library("scales")
+library("lubridate")
+weekly_trusts <- read_excel("Weekly_Trusts.xlsx", sheet="first_vaccinated")
+
+weekly_trusts$weeks_first_vaccinated=as.Date(weekly_trusts$weeks_first_vaccinated)
+
+
+
+# General Trust
+correlation_gen <- cor(weekly_trusts$week_number, weekly_trusts$general_trust)
+
+ggplot(data=weekly_trusts, aes(x=weeks_first_vaccinated, y=general_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts$weeks_first_vaccinated), y=max(weekly_trusts$general_trust), label=paste("Correlation:", round(correlation_gen, 2)), hjust=3, vjust=-3) +
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") +
+  labs(title = "Mean Trust in General Public & First Vaccination Date", x="first vaccination date", y="mean weekly trust level in general public")
+
+# Police Trust
+correlation_police <- cor(weekly_trusts$week_number, weekly_trusts$police_trust)
+
+ggplot(data=weekly_trusts, aes(x=weeks_first_vaccinated, y=police_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts$weeks_first_vaccinated), y=max(weekly_trusts$police_trust), label=paste("Correlation:", round(correlation_police, 2)), hjust=3, vjust=-3) +
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") +
+  labs(title = "Mean Trust in The Police by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in police")
+
+# Education Trust
+correlation_education <- cor(weekly_trusts$week_number, weekly_trusts$education_trust)
+
+ggplot(data=weekly_trusts, aes(x=weeks_first_vaccinated, y=education_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts$weeks_first_vaccinated), y=max(weekly_trusts$education_trust), label=paste("Correlation:", round(correlation_education, 2)), hjust=3, vjust=-3) +
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") +
+  labs(title = "Mean Trust in the Education System by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in education system")
+
+# Media Trust
+correlation_media <- cor(weekly_trusts$week_number, weekly_trusts$media_trust)
+
+ggplot(data=weekly_trusts, aes(x=weeks_first_vaccinated, y=media_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts$weeks_first_vaccinated), y=max(weekly_trusts$media_trust), label=paste("Correlation:", round(correlation_media, 2)), hjust=3, vjust=-3) +
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") + 
+  labs(title = "Mean Trust in The Media by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in media")
+
+# Courts Trust
+correlation_courts <- cor(weekly_trusts$week_number, weekly_trusts$courts_trust)
+
+ggplot(data=weekly_trusts, aes(x=weeks_first_vaccinated, y=courts_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts$weeks_first_vaccinated), y=max(weekly_trusts$courts_trust), label=paste("Correlation:", round(correlation_courts, 2)), hjust=3, vjust=-3) + 
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") + 
+  labs(title = "Mean Trust in The Courts by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in the courts")
+
+# Parliament Trust
+correlation_parliament <- cor(weekly_trusts$week_number, weekly_trusts$parliament_trust)
+
+ggplot(data=weekly_trusts, aes(x=weeks_first_vaccinated, y=parliament_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+    annotate("text", x=max(weekly_trusts$weeks_first_vaccinated), y=max(weekly_trusts$parliament_trust), label=paste("Correlation:", round(correlation_parliament, 2)), hjust=3, vjust=-3) +
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") + 
+  labs(title = "Mean Trust in Parliament by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in Parliament")
+
+# Health Trust
+
+correlation_health <- cor(weekly_trusts$week_number, weekly_trusts$health_trust)
+
+ggplot(data=weekly_trusts, aes(x= weeks_first_vaccinated, y=health_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts$weeks_first_vaccinated), y=max(weekly_trusts$health_trust), label=paste("Correlation:", round(correlation_health, 2)), hjust=3, vjust=-3) + 
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") + 
+  labs(title = "Mean Trust in The Health System by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in health system")
+
+# This is the second vaccination event 
+weekly_trusts_fully_vax <- read_excel("Weekly_Trusts.xlsx", sheet="fully_vaccinated")
+weekly_trusts_fully_vax$weeks_fully_vaccinated=as.Date(weekly_trusts_fully_vax$weeks_fully_vaccinated)
+
+# General Trust
+correlation_gen <- cor(weekly_trusts_fully_vax$week_number, weekly_trusts_fully_vax$general_trust)
+
+ggplot(data=weekly_trusts_fully_vax, aes(x=weeks_fully_vaccinated, y=general_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts_fully_vax$weeks_fully_vaccinated), y=max(weekly_trusts_fully_vax$general_trust), label=paste("Correlation:", round(correlation_gen, 2)), hjust=4, vjust=-3) +
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") +
+  labs(title = "Mean Trust in General Public & First Vaccination Date", x="first vaccination date", y="mean weekly trust level in general public")
+
+# Police Trust
+correlation_police <- cor(weekly_trusts_fully_vax$week_number, weekly_trusts_fully_vax$police_trust)
+
+ggplot(data=weekly_trusts_fully_vax, aes(x=weeks_fully_vaccinated, y=police_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts_fully_vax$weeks_fully_vaccinated), y=max(weekly_trusts_fully_vax$police_trust), label=paste("Correlation:", round(correlation_police, 2)), hjust=4, vjust=-3) +
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") +
+  labs(title = "Mean Trust in The Police by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in police")
+
+# Education Trust
+correlation_education <- cor(weekly_trusts_fully_vax$week_number, weekly_trusts_fully_vax$education_trust)
+
+ggplot(data=weekly_trusts_fully_vax, aes(x=weeks_fully_vaccinated, y=education_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts_fully_vax$weeks_fully_vaccinated), y=max(weekly_trusts_fully_vax$education_trust), label=paste("Correlation:", round(correlation_education, 2)), hjust=4, vjust=-3) +
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") +
+  labs(title = "Mean Trust in the Education System by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in education system")
+
+# Media Trust
+correlation_media <- cor(weekly_trusts_fully_vax$week_number, weekly_trusts_fully_vax$media_trust)
+
+ggplot(data=weekly_trusts_fully_vax, aes(x=weeks_fully_vaccinated, y=media_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts_fully_vax$weeks_fully_vaccinated), y=max(weekly_trusts_fully_vax$media_trust), label=paste("Correlation:", round(correlation_media, 2)), hjust=4, vjust=-3) +
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") + 
+  labs(title = "Mean Trust in The Media by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in media")
+
+# Courts Trust
+correlation_courts <- cor(weekly_trusts_fully_vax$week_number, weekly_trusts_fully_vax$courts_trust)
+
+ggplot(data=weekly_trusts_fully_vax, aes(x=weeks_fully_vaccinated, y=courts_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts_fully_vax$weeks_fully_vaccinated), y=max(weekly_trusts_fully_vax$courts_trust), label=paste("Correlation:", round(correlation_courts, 2)), hjust=4, vjust=-3) + 
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") + 
+  labs(title = "Mean Trust in The Courts by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in courts")
+
+# Parliament Trust
+correlation_parliament <- cor(weekly_trusts_fully_vax$week_number, weekly_trusts_fully_vax$parliament_trust)
+
+ggplot(data=weekly_trusts_fully_vax, aes(x=weeks_fully_vaccinated, y=parliament_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+    annotate("text", x=max(weekly_trusts_fully_vax$weeks_fully_vaccinated), y=max(weekly_trusts_fully_vax$parliament_trust), label=paste("Correlation:", round(correlation_parliament, 2)), hjust=4, vjust=-3) +
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") + 
+  labs(title = "Mean Trust in Parliament by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in Parliament")
+
+# Health Trust
+correlation_health <- cor(weekly_trusts_fully_vax$week_number, weekly_trusts_fully_vax$health_trust)
+
+ggplot(data=weekly_trusts_fully_vax, aes(x= weeks_fully_vaccinated, y=health_trust)) + 
+  geom_line() +
+  ylim(0,10) + 
+  geom_smooth(method="lm", se = FALSE, color = "red", size=0.5) +
+  annotate("text", x=max(weekly_trusts_fully_vax$weeks_fully_vaccinated), y=max(weekly_trusts_fully_vax$health_trust), label=paste("Correlation:", round(correlation_health, 2)), hjust=4, vjust=-3) + 
+  geom_vline(xintercept = as.numeric(ymd("2021-10-11")), linetype = "dashed", color = "blue") + 
+  labs(title = "Mean Trust in The Health System by First Vaccination Event", x="first vaccination date", y="mean weekly trust level in health system")
+
+# Some general discriptive stats:
+
+numerical_summary <- master_data_2 %>%
+  summarise(
+    mean_age = mean(age_dec, na.rm = TRUE),
+    sd_age = sd(age_dec, na.rm = TRUE),
+    mean_deprivation = mean(deprivation_index_decile, na.rm = TRUE),
+    sd_deprivation = sd(deprivation_index_decile, na.rm = TRUE),
+    mean_life_satisfaction = mean(life_satisfaction, na.rm = TRUE),
+    sd_life_satisfaction = sd(life_satisfaction, na.rm = TRUE),
+    mean_gen_trust = mean(general_trust, na.rm = TRUE),
+    sd_gen_trust = sd(general_trust, na.rm = TRUE)
+  )
+
+categorical_summary <- master_data_2 %>%
+  group_by(prioritised_ethnicity, gender, highest_qual) %>%
+  count()
+
+summary_table <- bind_rows(numerical_summary, categorical_summary)
+print(summary_table)
+print(categorical_summary)
+library("plyr")
+count(master_data_2, 'gender')
+count(master_data_2, 'education')
+count(master_data_2, 'prioritised_ethnicity')
+count(master_data_2, 'recieved_COVID_vaccine')
+count(master_data_2, 'vote_in_last_election')
+count(master_data_2, 'discrimination')
+count(master_data_2, 'marital_status')
+count(master_data_2, 'life_satisfaction')
+count(master_data_2, 'health_status')
+
+
+# detecting relationships between two variables. 
+
+# creating group-wide scatter plots
+ggplot(master_data_1, aes(x = general_trust, y = prioritised_ethnicity, colour = prioritised_ethnicity)) + 
+  geom_point() +
+  labs(x = "general_trust", y = "prioritised_ethnicity") +
+  ggtitle("General Trust and Ethnicity")
+
+# Create box plot
+ggplot(master_data_1, aes(x = general_trust, y = prioritised_ethnicity)) + 
+  geom_boxplot() +
+  labs(x = "general_trust", y = "ethnicity") +
+  ggtitle("Boxplot of General trust and ethnicity")
+
+# linear regression model and calculate R-Squared
+
+model <- lm(general_trust ~ prioritised_ethnicity, data = master_data_1)
+summary(model)$r.squared
+
+# fit polynominal regression model
+general_trust_model <- lm(general_trust ~ prioritised_ethnicity + I(prioritised_ethnicity^2), data = master_data_1)
+summary(general_trust_model)
+
+
+
+# Correlations between numeric variables and my outcome variable (trust)
+
+# First I think I will perform a correlation matrix, between all the variables and all the domains of trust. This will be a good starting point. 
+# It didn't work as I think there were too many missing values. I am going to introduce a dataset which just includes the trust data and removes all the rows with missing values. And honestly just see what happens. 
+
+master_data_none_missing <- na.omit(master_data_1)
+str(master_data_none_missing)
+
+```
+
+```{r query}
+
+master_data_1$X2019_total_earnings=as.numeric(master_data_1$X2019_total_earnings)
+
+
+cor_matrix <- cor(master_data_none_missing[, c("deprivation_index_decile", "deprivation_index_quintile", "X2019_total_earnings", "X2020_total_earnings", "X2020_total_benefits", "X2020_sole_trader_income","number_languages_spoken", "age_dec", "general_trust", "police_trust", "education_trust", "media_trust", "courts_trust", "parliament_trust", "health_trust")])
+
+
+library(corrplot)
+corrplot(cor_matrix, method = "circle", type = "upper", tl.col = "black", tl.srt = 45)
+
+cor_table <- round(cor_matrix, 2)
+print(cor_table)
+
+# Ok the correlation matrix was fine, but I want actual numbers. Here I am going to attempt this again. 
+
+selected_cols <- master_data_none_missing[, c("deprivation_index_decile", "deprivation_index_quintile", "X2019_total_earnings", "X2020_total_earnings", "X2020_total_benefits", "X2020_sole_trader_income", "age_dec", "number_languages_spoken", "general_trust", "police_trust", "education_trust", "media_trust", "courts_trust", "parliament_trust", "health_trust")]
+
+# Create correlation matrix for the selected columns
+cor_table_2 <- cor(selected_cols, method = "pearson", use = "complete.obs")
+
+#Print correlation matrix 
+print(round(cor_table_2, 2))
+
+
+```
+
+``` {r query}
+
+# Ok, so there really doesn't appear to be any significant linear relationships between the variables that I am interested in. Next step will be to check for non-linear relationships and then also looking into categorical variables and their relationship with trust variables. 
+
+ #So next steps: 1. Scatterplots of variables. 2. Confirm relationships with categorical stuff 
+
+
+#Scatter plot of age and general trust
+
+ggplot(master_data_none_missing, aes(x=age_dec, y = general_trust)) + 
+  geom_point() +
+  geom_smooth(method = "loess")
+  xlab("Age")
+  ylab("General_trust")
+
+# Line graph of age and general trust  
+ggplot(master_data_1, aes(x=age_dec, y = general_trust, group = 1)) + 
+  geom_line() +
+  geom_smooth(method = "loess")
+  xlab("Age")
+  ylab("General Trust")
+  
+  # Mean trust for every age group
+  mean_trust <- aggregate(general_trust ~ age_dec, data = master_data_1, FUN = mean)
+  ggplot(mean_trust, aes(x = age_dec, y = general_trust)) +
+    geom_line() +
+    xlab("Age")
+    ylab("General Trust")
+    
+  
+  # All of the above used General Trust. Now I am going to play around with the other domains of trust. 
+    
+    
+master_data_filtered <- master_data_none_missing %>%
+  group_by(age_dec) %>%
+  filter(n() >= 50)
+    
+      # Mean Media trust for every age group
+  mean_trust <- aggregate(media_trust ~ age_dec, data = master_data_filtered, FUN = mean)
+  ggplot(mean_trust, aes(x = age_dec, y = media_trust)) +
+    geom_line() +
+    xlab("Age")
+    ylab("Media Trust")
+    
+      # Mean Parliament trust for every age group
+  mean_trust <- aggregate(parliament_trust ~ age_dec, data = master_data_filtered, FUN = mean)
+  ggplot(mean_trust, aes(x = age_dec, y = parliament_trust)) +
+    geom_line() +
+    xlab("Age")
+    ylab("Parliament Trust")
+    
+          # Mean Police trust for every age group
+  mean_trust <- aggregate(police_trust ~ age_dec, data = master_data_filtered, FUN = mean)
+  ggplot(mean_trust, aes(x = age_dec, y = police_trust)) +
+    geom_line() +
+    xlab("Age")
+    ylab("Parliament Trust")
+    
+          # Mean Courts trust for every age group
+  mean_trust <- aggregate(courts_trust ~ age_dec, data = master_data_1, FUN = mean)
+  ggplot(mean_trust, aes(x = age_dec, y = courts_trust)) +
+    geom_line() +
+    xlab("Age")
+    ylab("Courts Trust")
+    
+          # Mean Health trust for every age group
+  mean_trust <- aggregate(health_trust ~ age_dec, data = master_data_1, FUN = mean)
+  ggplot(mean_trust, aes(x = age_dec, y = health_trust)) +
+    geom_line() +
+    xlab("Age")
+    ylab("Health Trust")
+    
+              # Mean Education trust for every age group
+  mean_trust <- aggregate(education_trust ~ age_dec, data = master_data_1, FUN = mean)
+  ggplot(mean_trust, aes(x = age_dec, y = education_trust)) +
+    geom_line() +
+    xlab("Age")
+    ylab("Education Trust")
+    
+```
+
+
+
+``` {r query}
+str(master_data_2)
+
+# Ok now I am going to try and determine whether there is a relationship between categorical variables and trust. 
+
+# Convert binary variables to numeric. 
+master_data_2$non_resident=as.numeric(master_data_2$non_resident)
+
+# Convert categorical variables to numeric
+master_data_2$dhb_domicile=as.numeric(master_data_2$dhb_domicile)
+master_data_2$religion=as.numeric(master_data_2$religion)
+master_data_2$disabled=as.numeric(master_data_2$disabled)
+master_data_2$smoker=as.numeric(master_data_2$smoker)
+master_data_2$education=as.numeric(master_data_2$education)
+master_data_2$gender=as.numeric(master_data_2$gender)
+master_data_2$prioritised_ethnicity=as.numeric(master_data_2$prioritised_ethnicity)
+master_data_2$X2019_total_earnings=as.numeric(master_data_2$X2019_total_earnings)
+master_data_2$partnership_status=as.numeric(master_data_2$partnership_status)
+
+
+
+# Calculate the correlation matrix
+corr_matrix <- master_data_2 %>% select(non_resident, dhb_domicile, religion, partnership_status, disabled, education, gender, prioritised_ethnicity, deprivation_index_decile, deprivation_index_quintile, X2019_total_earnings, X2020_total_earnings, X2020_total_benefits, X2020_sole_trader_income, age_dec, number_languages_spoken, general_trust, police_trust, education_trust, media_trust, courts_trust, parliament_trust, health_trust) %>%
+  cor(use = "pairwise.complete.obs")
+
+# Visualise the correlation matrix
+corrplot(corr_matrix, method = "color") +
+  theme(plot.margin = margin(5, 5, 5, 5, "cm")) + 
+  theme(panel.spacing = unit(c(4, 4, 4, 4), "cm"))
+
+
+write.table(corr_matrix, "cor_matrix_table.csv", sep=",")
+
+```
+
+# So it seems that very few of the demographic variables are correlated with trust. There is a slight correlation between health trust and ethnicity as well as deprivation index. But nothing that significant. Next I am going to attempt to produce a table which shows these values in full. Once I have completed that, then I will check for a few non-linear relationships. 
+
+total_corr <- master_data_1[, c("non_resident", "dhb_domicile", "disabled", "partnership_status", "religion", "smoker", "gender", "prioritised_ethnicity",
+"deprivation_index_decile", "deprivation_index_quintile", "X2019_total_earnings", "X2020_total_earnings", "X2020_total_benefits", "X2020_sole_trader_income", "age_dec", "number_languages_spoken", "general_trust", "police_trust", "education_trust", "media_trust", "courts_trust", "parliament_trust", "health_trust")]
+
+
+
+total_corr_2 <- cor(total_corr, method = "pearson", use = "complete.obs")
+
+print(round(total_corr_2, 2))
+
+# You need to add back in partnership status 
+
+
+```
+``` {r query}
+
+# Ok next steps. I haven't been able to find any particullary convincing demographics which suggest trust in government. The only other variable which I am yet to include, is education. So next time, it is probably worth looking into that. Secondly, I should do a few checks for non-linearity. And just double check my datasets etc. But it is interesting that it is so difficult to find what predicts trust. Perhaps this is an interesting finding in and of itself. 
+
+# Series of boxplots for trust and ethnicity  
+
+# Here is a dataset which should include only the ~10,000 respondants who engaged with other questions 
+trust_ethnicity_full <- master_data_1[complete.cases(master_data_1$general_trust),]
+  
+trust_ethnicity_full$prioritised_ethnicity=as.factor(trust_ethnicity_full$prioritised_ethnicity)
+
+
+str(trust_ethnicity_full)
+str(master_data_none_missing)
+
+ggplot(trust_ethnicity_full, aes(x = prioritised_ethnicity, y = general_trust)) + 
+  geom_boxplot() + 
+  scale_y_continuous(limits = c(min(trust_ethnicity_full$general_trust), max(trust_ethnicity_full$general_trust))) + 
+  labs(title = "General Trust by Ethnicity", x = "Ethnicity", y = "General Trust")
+
+ggplot(trust_ethnicity_full, aes(x = prioritised_ethnicity, y = health_trust)) + 
+  geom_boxplot() + 
+  scale_y_continuous(limits = c(min(trust_ethnicity_full$health_trust), max(trust_ethnicity_full$health_trust))) + 
+  labs(title = "Health Trust by Ethnicity", x = "Ethnicity", y = "Health Trust")
+
+ggplot(trust_ethnicity_full, aes(x = prioritised_ethnicity, y = parliament_trust)) + 
+  geom_boxplot() + 
+  scale_y_continuous(limits = c(min(trust_ethnicity_full$parliament_trust), max(trust_ethnicity_full$parliament_trust))) + 
+  labs(title = "Parliament Trust by Ethnicity", x = "Ethnicity", y = "Parliament Trust")
+
+ggplot(trust_ethnicity_full, aes(x = prioritised_ethnicity, y = media_trust)) + 
+  geom_boxplot() + 
+  scale_y_continuous(limits = c(min(trust_ethnicity_full$media_trust), max(trust_ethnicity_full$media_trust))) + 
+  labs(title = "Media Trust by Ethnicity", x = "Ethnicity", y = "Media Trust")
+
+ggplot(trust_ethnicity_full, aes(x = prioritised_ethnicity, y = police_trust)) + 
+  geom_boxplot() + 
+  scale_y_continuous(limits = c(min(trust_ethnicity_full$police_trust), max(trust_ethnicity_full$police_trust))) + 
+  labs(title = "Police Trust by Ethnicity", x = "Ethnicity", y = "Police Trust")
+
+```
+```{r query}
+
+# Boxplots for disability, relationship status, relgion and smoking status. 
+
+trust_ethnicity_full$disabled=as.factor(trust_ethnicity_full$disabled)
+trust_ethnicity_full$partnership_status=as.factor(trust_ethnicity_full$partnership_status)
+trust_ethnicity_full$religion=as.factor(trust_ethnicity_full$religion)
+trust_ethnicity_full$smoker=as.factor(trust_ethnicity_full$smoker)
+
+religion_frequency_table <-table(master_data$religion)
+print(religion_frequency_table)
+
+
+ggplot(trust_ethnicity_full, aes(x = disabled, y = general_trust)) + 
+  geom_boxplot() + 
+  scale_y_continuous(limits = c(min(trust_ethnicity_full$general_trust), max(trust_ethnicity_full$general_trust))) + 
+  labs(title = "General Trust by Disabled Status", x = "Disabled Status", y = "General Trust")
+
+ggplot(trust_ethnicity_full, aes(x = smoker, y = general_trust)) + 
+  geom_boxplot() + 
+  scale_y_continuous(limits = c(min(trust_ethnicity_full$general_trust), max(trust_ethnicity_full$general_trust))) + 
+  labs(title = "General Trust by Smoker Status", x = "Smoker Status", y = "General Trust")
+
+
+ggplot(trust_ethnicity_full, aes(x = partnership_status, y = general_trust)) + 
+  geom_boxplot() + 
+  scale_y_continuous(limits = c(min(trust_ethnicity_full$general_trust), max(trust_ethnicity_full$general_trust))) + 
+  labs(title = "General Trust by Partnership Status", x = "Partnership Status", y = "General Trust")
+
+
+
+ggplot(master_data_filtered, aes(x = religion, y = general_trust)) + 
+  geom_boxplot() + 
+  scale_y_continuous(limits = c(min(master_data_filtered$general_trust), max(master_data_filtered$general_trust))) + 
+  labs(title = "General Trust by Religion", x = "Religion", y = "General Trust")
+
+```
+``` {r query}
+
+# Ok I think the next step is to include education. That is the final variable that I can think of. And tbh it is probably a useful one. I think just add it into Rstudio and then I make decisions on whether to combine education levels. Maybe, not finished hs, complete hs, post hs qualification, bachelors, graduate degree, 
+
+```
+
+```{r query}
+measures <- c("general_trust", "police_trust", "education_trust", "media_trust", "courts_trust", "parliament_trust", "health_trust")
+trusts <- select(master_data, measures) %>% replace(.==88, NA) %>% replace(.==99, NA)
+
+
+Hmisc::describe(trusts)
+
+head(trusts)
+
+```
+
+``` {r query}
+
+# Reshape the dataset
+stacked_trusts <- stack(trusts)
+head(stacked_trusts)
+
+#boxplot(trusts, col=rainbow(ncol(trusts)), notch=TRUE)
+ggplot(stacked_trusts, aes(x=ind, y=values)) + 
+   geom_boxplot(outlier.shape=NA) +
+   stat_boxplot(geom= "errorbar", width = 0.2) +
+   scale_x_discrete(name = "Institution") + 
+   ggtitle("Boxplot of All Trust Data")
+
+```
+
+
+```{r query}
+
+counts <- table(master_data_1$health_trust_updated)
+counts <- table(master_data_1$health_trust)
+counts
+kable(counts, caption = "Frequency of religion ")
+
+```
+
+
+
