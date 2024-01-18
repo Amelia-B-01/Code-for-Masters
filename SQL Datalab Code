@@ -1,0 +1,499 @@
+
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[GSS_BIG_DATA]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[GSS_BIG_DATA];
+GO
+
+
+/* Create staging */
+SELECT [snz_uid]
+, CAST([gss_pq_collection_code] AS VARCHAR) AS [gss_survey_date]
+, CAST([gss_pq_trust_most_code] AS NUMERIC) AS [general_trust]
+, CAST([gss_pq_trust_police_code] AS NUMERIC) AS [police_trust]
+, CAST([gss_pq_trust_education_code] AS NUMERIC) AS [education_trust] 
+, CAST([gss_pq_trust_media_code] AS NUMERIC) AS [media_trust]
+, CAST([gss_pq_trust_courts_code] AS NUMERIC) AS [courts_trust]
+, CAST([gss_pq_trust_parliament_code] AS NUMERIC) AS [parliament_trust]
+, CAST([gss_pq_trust_health_code] AS NUMERIC) AS [health_trust]
+, CAST([gss_pq_mig_stat_code] AS VARCHAR) AS [migrant_status]
+, CAST([gss_pq_lfs_dev] AS NUMERIC) AS [labour_force_status]
+, CAST([gss_pq_mar_stat_code] AS VARCHAR) AS [marital_status]
+, CAST([gss_pq_fam_type_code] AS VARCHAR) AS [family_status]
+, CAST([gss_pq_HH_inc_detailed_code] AS NUMERIC) AS [household_income]
+, CAST([gss_pq_feel_life_code] AS NUMERIC) AS [life_satisfaction]
+, CAST([gss_pq_health_excel_poor_code] AS NUMERIC) AS [health_status]
+, CAST([gss_pq_cult_identity_code] AS NUMERIC) AS [being_yourself]
+, CAST([gss_pq_AOD_lgbt_diff_code] AS NUMERIC) AS [neighbour_queer]
+, CAST([gss_pq_AOD_ethnic_diff_code] AS NUMERIC) AS [neighbour_ethnicity]
+, CAST([gss_pq_AOD_Illness_code] AS NUMERIC) AS [neighbour_mental]
+, CAST([gss_pq_AOD_difflang_code] AS NUMERIC) AS [neighbour_language]
+, CAST([gss_pq_AOD_disability_code] AS NUMERIC) AS [neighbour_disabled]
+, CAST([gss_pq_AOD_Immigrant_code] AS NUMERIC) AS [neighbour_immigrant]
+, CAST([gss_pq_discriminated_code] AS NUMERIC) AS [discrimination]
+, CAST([gss_pq_pers_inc_amt_code] AS NUMERIC) AS [personal_income]
+, CAST([gss_pq_saf_fear_crime_code] AS NUMERIC) AS [crime_concerns]
+, CAST([gss_pq_vote_last_election_code] AS NUMERIC) AS [vote_in_last_election]
+, CAST([gss_pq_no_vote_elect_oth_code] AS NUMERIC) AS [reason_for_not_voting]
+, CAST([gss_pq_enrol_election_code] AS NUMERIC) AS [enrolled_last_election]
+, CAST([gss_pq_no_enrol_election_code] AS NUMERIC) AS [reason_for_not_enrolled]
+
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[GSS_BIG_DATA]
+FROM [IDI_Clean_202303].[gss_clean].[gss_person]
+
+
+
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[HSU_BIG_DATA]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[HSU_BIG_DATA];
+GO
+
+/* First, I am just interested in NHI INFO. At some point, I will also need to add in CENSUS Info. However, perhaps I will make a seperate CENSUS DataSet, and then join them*/
+SELECT [snz_uid]
+, CAST([snz_moh_uid] AS CHAR) AS [snz_moh_uid]
+, CAST([gender_code] AS CHAR) AS [gender]
+, CAST([dob_year] AS INT) AS [birth_year]
+, CAST([dob_month] AS INT) AS [birth_month]
+, CAST([dod_year] AS INT) AS [death_year] 
+, CAST([ethnicity_priority] AS VARCHAR) AS [prioritised_ethnicity]
+, CAST([dhb_domicile_code] AS VARCHAR) AS [dhb_domicile]
+, CAST([meshblock_person_addr_code] AS VARCHAR) AS [meshblock]
+, CAST([nzdep13_decile] AS CHAR) AS [deprivation_index_decile]
+, CAST([nzdep13_quintile] AS INT) AS [deprivation_index_quintile]
+, CAST([mort] AS INT) AS [recorded_dead]
+, CAST([oseas_hosp] AS INT) AS [non_resident]
+, CAST([cir] AS INT) AS [recieved_COVID_vaccine]
+, CAST([cvip_eligible] AS INT) AS [eligible_for_COVID_vaccine]
+, CAST([first_vacc_activity_date] AS DATE) AS [first_vaccine_date]
+, CAST([last_vacc_activity_date] AS DATE) AS [last_vaccine_date]
+
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[HSU_BIG_DATA]
+FROM [IDI_Adhoc].[clean_read_MOH_CIR].[moh_cir_hsu_20230221]
+
+
+/* Now I want to remove everyone who is dead and who is */
+
+WHERE [IDI_Adhoc].[clean_read_MOH_CIR].[moh_cir_hsu_20230221].[dod_year] IS NULL
+AND [IDI_Adhoc].[clean_read_MOH_CIR].[moh_cir_hsu_20230221].[mort] = 0
+GO
+
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[VAX_STATUS]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[VAX_STATUS];
+GO
+
+SELECT [snz_moh_uid]
+, CAST([first_vacc_activity_date] AS VARCHAR) AS [cir_first_vaccine_date]
+, CAST([fully_vaccinated_activity_date] AS VARCHAR) AS [fully_vaccinated_date] 
+
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[VAX_STATUS]
+FROM [IDI_Adhoc].[clean_read_MOH_CIR].[moh_cir_vaccination_status_20230221]
+GO 
+
+
+
+/* IR_BIG_DATA_2019 */
+
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA_2019]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA_2019];
+GO
+
+/* First, I am just interested in NHI INFO. At some point, I will also need to add in CENSUS Info. However, perhaps I will make a seperate CENSUS DataSet, and then join them*/
+SELECT [snz_uid]
+, CAST([inc_tax_yr_sum_year_nbr] AS INT) AS [tax_year]
+, CAST([inc_tax_yr_sum_WAS_tot_amt] AS DECIMAL) AS [X2019_total_earning_wage_salaries]
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA_2019]
+FROM [IDI_Clean_202210].[data].[income_tax_yr_summary]
+WHERE [inc_tax_yr_sum_year_nbr] = 2019 
+
+
+
+/* IR_BIG_DATA_2020 */
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA_2020]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA_2020];
+GO
+
+/* First, I am just interested in NHI INFO. At some point, I will also need to add in CENSUS Info. However, perhaps I will make a seperate CENSUS DataSet, and then join them*/
+SELECT [snz_uid]
+, CAST([inc_tax_yr_sum_year_nbr] AS INT) AS [tax_year]
+, CAST([inc_tax_yr_sum_WAS_tot_amt] AS DECIMAL) AS [X2020_total_earning_wage_salaries]
+, CAST([inc_tax_yr_sum_BEN_tot_amt] AS DECIMAL) AS [X2020_total_benefits]
+, CAST([inc_tax_yr_sum_S00_tot_amt] AS DECIMAL) AS [X2020_sole_trader_income] /* NOTE this is just an indication of whether they are self-employed (this is measured in tax year, rather than calendar year) */
+
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA_2020]
+FROM [IDI_Clean_202210].[data].[income_tax_yr_summary]
+WHERE [inc_tax_yr_sum_year_nbr] = 2020 
+
+
+ /*IR_BIG_DATA ****************************************************************************************************************/
+
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA];
+GO
+
+
+/* Create staging */
+SELECT [IR_BIG_DATA_2020].[snz_uid]
+,[X2019_total_earning_wage_salaries]
+,[X2020_total_earning_wage_salaries]
+,[X2020_total_benefits]
+,[X2020_sole_trader_income]
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA]
+FROM [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA_2020]
+FULL JOIN [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA_2019]
+ON [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA_2020].snz_uid = [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA_2019].snz_uid
+GO
+
+
+
+/* HSU_CIR ***********************************************************************************************************************/
+
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[HSU_CIR]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[HSU_CIR];
+GO
+
+/* Create staging */
+SELECT [HSU_BIG_DATA].[snz_moh_uid]
+	,[snz_uid]
+	,[gender]
+	,[birth_year]
+	,[birth_month]
+	,[death_year] 
+	,[prioritised_ethnicity]
+	,[dhb_domicile]
+	,[meshblock]
+	,[deprivation_index_decile]
+	,[deprivation_index_quintile]
+	,[recorded_dead]
+	,[non_resident]
+	,[recieved_COVID_vaccine]
+	,[eligible_for_COVID_vaccine]
+	,[first_vaccine_date]
+	,[last_vaccine_date]
+	,[cir_first_vaccine_date]
+	,[fully_vaccinated_date] 
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[HSU_CIR]
+FROM [IDI_Sandpit].[DL-MAA2022-28].[HSU_BIG_DATA]
+FULL JOIN [IDI_Sandpit].[DL-MAA2022-28].[VAX_STATUS]
+ON [IDI_Sandpit].[DL-MAA2022-28].[HSU_BIG_DATA].snz_moh_uid = [IDI_Sandpit].[DL-MAA2022-28].[VAX_STATUS].snz_moh_uid
+GO
+
+
+
+/* GSS_HSU_CIR ************************************************************************************************************************/
+
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_CIR]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_CIR];
+GO
+
+
+/* Create staging */
+SELECT [HSU_CIR].[snz_uid]
+, [gender]
+, [birth_year]
+, [birth_month]
+, [death_year]
+, [prioritised_ethnicity]
+, [dhb_domicile]
+, [meshblock]
+, [deprivation_index_decile]
+, [deprivation_index_quintile]
+, [recorded_dead]
+, [non_resident]
+, [recieved_COVID_vaccine]
+, [eligible_for_COVID_vaccine]
+, [first_vaccine_date]
+, [last_vaccine_date]
+, [cir_first_vaccine_date]
+, [fully_vaccinated_date] 
+, [gss_survey_date]
+, [general_trust]
+, [police_trust]
+, [education_trust] 
+, [media_trust]
+, [courts_trust]
+, [parliament_trust]
+, [health_trust]
+, [migrant_status]
+, [labour_force_status]
+, [marital_status]
+, [family_status]
+, [household_income]
+, [life_satisfaction]
+, [health_status]
+, [being_yourself]
+, [neighbour_queer]
+, [neighbour_ethnicity]
+, [neighbour_mental]
+, [neighbour_language]
+, [neighbour_disabled]
+, [neighbour_immigrant]
+, [discrimination]
+, [personal_income]
+, [crime_concerns]
+, [vote_in_last_election]
+, [reason_for_not_voting]
+, [enrolled_last_election]
+, [reason_for_not_enrolled]
+
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_CIR]
+FROM [IDI_Sandpit].[DL-MAA2022-28].[HSU_CIR]
+FULL JOIN [IDI_Sandpit].[DL-MAA2022-28].[GSS_BIG_DATA]
+ON [IDI_Sandpit].[DL-MAA2022-28].[HSU_CIR].snz_uid = [IDI_Sandpit].[DL-MAA2022-28].[GSS_BIG_DATA].snz_uid
+
+
+
+/* GSS_HSU_IR_CIR */
+
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_IR]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_IR];
+GO
+
+
+/* Create staging */
+SELECT [GSS_HSU_CIR].[snz_uid]
+, [gender]
+, [birth_year]
+, [birth_month]
+, [death_year]
+, [prioritised_ethnicity]
+, [dhb_domicile]
+, [meshblock]
+, [deprivation_index_decile]
+, [deprivation_index_quintile]
+, [recorded_dead]
+, [non_resident]
+, [recieved_COVID_vaccine]
+, [eligible_for_COVID_vaccine]
+, [first_vaccine_date]
+, [last_vaccine_date]
+, [cir_first_vaccine_date]
+, [fully_vaccinated_date]
+, [X2019_total_earning_wage_salaries]
+, [X2020_total_earning_wage_salaries]
+, [X2020_total_benefits]
+, [X2020_sole_trader_income]
+, [gss_survey_date]
+, [general_trust]
+, [police_trust]
+, [education_trust] 
+, [media_trust]
+, [courts_trust]
+, [parliament_trust]
+, [health_trust]
+, [migrant_status]
+, [labour_force_status]
+, [marital_status]
+, [family_status]
+, [household_income]
+, [life_satisfaction]
+, [health_status]
+, [being_yourself]
+, [neighbour_queer]
+, [neighbour_ethnicity]
+, [neighbour_mental]
+, [neighbour_language]
+, [neighbour_disabled]
+, [neighbour_immigrant]
+, [discrimination]
+, [personal_income]
+, [crime_concerns]
+, [vote_in_last_election]
+, [reason_for_not_voting]
+, [enrolled_last_election]
+, [reason_for_not_enrolled]
+
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_IR]
+FROM [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_CIR]
+FULL JOIN [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA]
+ON [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_CIR].snz_uid = [IDI_Sandpit].[DL-MAA2022-28].[IR_BIG_DATA].snz_uid
+
+
+
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[RELIGION_BIG_DATA]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[RELIGION_BIG_DATA];
+GO
+
+SELECT [snz_uid]
+, CAST([cen_ind_religion_output_level1] AS VARCHAR) AS [religion] 
+, CAST([cen_ind_religion_objection_code] AS VARCHAR) AS [objection] 
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[RELIGION_BIG_DATA]
+FROM [IDI_Clean_202210].[cen_clean].[census_individual_2018]
+
+
+USE IDI_UserCode
+GO
+
+
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[CENSUS_BIG_DATA]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[CENSUS_BIG_DATA];
+GO
+
+
+/* Here I am compiling all the relevant information from the census. Then I will merge will all of my other datasets (hopefully heheh)*/
+SELECT [snz_uid]
+, CAST([cen_ind_birth_country_code] AS CHAR) AS [birth_place]
+, CAST([cen_ind_language_output_level1] AS VARCHAR) AS [languages_spoken]
+, CAST([cen_ind_languages_cnt_code] AS CHAR) AS [number_languages_spoken]
+, CAST([cen_ind_dsblty_ind_code] AS CHAR) AS [disabled]
+, CAST([cen_ind_smoking_stus_code] AS CHAR) AS [smoker]
+, CAST([cen_ind_prtnsp_stus_relatp_code] AS CHAR) AS [partnership_status]
+, CAST([cen_ind_standard_hst_qual_code] as CHAR) AS [education]
+
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[CENSUS_BIG_DATA]
+FROM [IDI_Clean_202210].[cen_clean].[census_individual_2018]
+
+
+/* I still have everyone who is dead, who might have left the country or who is young.But I think if i only include those who are also in HSU, then we are ok */
+
+
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[CENSUS_BIG_DATA_R]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[CENSUS_BIG_DATA_R];
+GO
+
+SELECT [CENSUS_BIG_DATA].[snz_uid]
+,[birth_place]
+,[languages_spoken]
+,[number_languages_spoken]
+,[disabled]
+,[smoker]
+,[partnership_status]
+,[religion]
+,[education]
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[CENSUS_BIG_DATA_R]
+FROM [IDI_Sandpit].[DL-MAA2022-28].[CENSUS_BIG_DATA]
+FULL JOIN [IDI_Sandpit].[DL-MAA2022-28].[RELIGION_BIG_DATA]
+ON [IDI_Sandpit].[DL-MAA2022-28].[CENSUS_BIG_DATA].snz_uid = [IDI_Sandpit].[DL-MAA2022-28].[RELIGION_BIG_DATA].snz_uid
+
+
+
+
+USE IDI_UserCode
+GO
+
+/* Clear existing view */
+IF OBJECT_ID('[IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_IR_CENSUS]') IS NOT NULL
+DROP TABLE [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_IR_CENSUS];
+GO
+
+
+/* Create staging */
+SELECT [GSS_HSU_IR].[snz_uid]
+,[gender]
+,[birth_year]
+,[birth_month]
+,[prioritised_ethnicity]
+,[dhb_domicile]
+,[meshblock]
+,[deprivation_index_decile]
+,[deprivation_index_quintile]
+,[non_resident]
+,[recieved_COVID_vaccine]
+,[eligible_for_COVID_vaccine]
+,[first_vaccine_date]
+,[last_vaccine_date]
+,[cir_first_vaccine_date]
+,[fully_vaccinated_date]
+,[birth_place]
+,[languages_spoken]
+,[number_languages_spoken]
+,[religion] 
+,[disabled]
+,[smoker]
+,[education]
+,[partnership_status]
+,[X2019_total_earning_wage_salaries]
+,[X2020_total_earning_wage_salaries]
+,[X2020_total_benefits]
+,[X2020_sole_trader_income]
+,[gss_survey_date]
+,[general_trust]
+,[police_trust]
+,[education_trust] 
+,[media_trust]
+,[courts_trust]
+,[parliament_trust]
+,[health_trust]
+, [migrant_status]
+, [labour_force_status]
+, [marital_status]
+, [family_status]
+, [household_income]
+, [life_satisfaction]
+, [health_status]
+, [being_yourself]
+, [neighbour_queer]
+, [neighbour_ethnicity]
+, [neighbour_mental]
+, [neighbour_language]
+, [neighbour_disabled]
+, [neighbour_immigrant]
+, [discrimination]
+, [personal_income]
+, [crime_concerns]
+, [vote_in_last_election]
+, [reason_for_not_voting]
+, [enrolled_last_election]
+, [reason_for_not_enrolled]
+
+
+INTO [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_IR_CENSUS]
+FROM [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_IR]
+FULL JOIN [IDI_Sandpit].[DL-MAA2022-28].[CENSUS_BIG_DATA_R]
+ON [IDI_Sandpit].[DL-MAA2022-28].[GSS_HSU_IR].snz_uid = [IDI_Sandpit].[DL-MAA2022-28].[CENSUS_BIG_DATA_R].snz_uid
+
+
