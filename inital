@@ -197,12 +197,7 @@ regress vax_status_10_10 trust_combined, vce(robust)
 regress vax_status_10_10 age_dec, vce(robust)
 regress vax_status_10_10 dummy_female, vce(robust)
 
-regress vax_status_10_10 european_dummy, vce(robust)
-regress vax_status_10_10 maori_dummy, vce(robust)
-regress vax_status_10_10 asian_dummy, vce(robust)
-regress vax_status_10_10 pacific_dummy, vce(robust)
-regress vax_status_10_10 MELAA_dummy, vce(robust)
-regress vax_status_10_10 other_dummy, vce(robust)
+regress vax_status_10_10 i.ethnicity_dummies, vce(robust)
 regress vax_status_10_10 vote_in_last_election,  vce(robust)
 
 regress vax_status_10_10 no_qualification, vce(robust)
@@ -265,15 +260,8 @@ logistic vax_status_10_10 postschool_qualification, vce(robust)
 logistic vax_status_10_10 undergrad_qualification, vce(robust)
 logistic vax_status_10_10 postgrad_qualification, vce(robust)
 
-
 ** Ethnicity
-logistic vax_status_10_10 european_dummy, vce(robust)
-logistic vax_status_10_10 maori_dummy, vce(robust)
-logistic vax_status_10_10 pacific_dummy, vce(robust)
-logistic vax_status_10_10 asian_dummy, vce(robust)
-logistic vax_status_10_10 MELAA_dummy, vce(robust)
-logistic vax_status_10_10 other_dummy, vce(robust)
-
+logistic vax_status_10_10 i.ethnicity_dummies, vce(robust)
 
 ** Other Individual Characteristics 
 logistic vax_status_10_10 disabled, vce(robust)
@@ -327,12 +315,7 @@ regress xfirst_vaccinated_week age_dec postgrad_qualification, vce(robust)
 
 
 *Ethnicity 
-regress xfirst_vaccinated_week age_dec european_dummy, vce(robust)
-regress xfirst_vaccinated_week age_dec  maori_dummy, vce(robust)
-regress xfirst_vaccinated_week age_dec pacific_dummy, vce(robust)
-regress xfirst_vaccinated_week age_dec asian_dummy, vce(robust)
-regress xfirst_vaccinated_week age_dec MELAA_dummy, vce(robust)
-regress xfirst_vaccinated_week age_dec other_dummy, vce(robust)
+regress xfirst_vaccinated_week age_dec i.ethnicity_dummies, vce(robust)
 
 *Other Individual Characteristics
 regress xfirst_vaccinated_week age_dec disabled, vce(robust)
@@ -386,12 +369,7 @@ regress xfinal_vaccinated_week age_dec postgrad_qualification, vce(robust)
 
 
 *Ethnicity 
-regress xfinal_vaccinated_week age_dec european_dummy, vce(robust)
-regress xfinal_vaccinated_week age_dec  maori_dummy, vce(robust)
-regress xfinal_vaccinated_week age_dec pacific_dummy, vce(robust)
-regress xfinal_vaccinated_week age_dec asian_dummy, vce(robust)
-regress xfinal_vaccinated_week age_dec MELAA_dummy, vce(robust)
-regress xfinal_vaccinated_week age_dec other_dummy, vce(robust)
+regress xfinal_vaccinated_week age_dec i.ethnicity_dummies, vce(robust)
 
 *Other Individual Characteristics
 regress xfinal_vaccinated_week age_dec disabled, vce(robust)
@@ -421,12 +399,7 @@ regress xfinal_vaccinated_week age_dec neighbour_immigrant, vce(robust)
 /// Linear regression with robust standard errors, for general trust
 regress general_trust age_dec, vce(robust)
 regress general_trust dummy_female, vce(robust)
-regress general_trust european_dummy, vce(robust)
-regress general_trust maori_dummy, vce(robust)
-regress general_trust asian_dummy, vce(robust)
-regress general_trust pacific_dummy, vce(robust)
-regress general_trust MELAA_dummy, vce(robust)
-regress general_trust other_dummy, vce(robust)
+regress general_trust i.ethnicity_dummies, vce(robust)
 regress general_trust no_qualification, vce(robust)
 regress general_trust school_qualification, vce(robust)
 regress general_trust postschool_qualification, vce(robust)
@@ -459,12 +432,7 @@ regress general_trust neighbour_queer, vce(robust)
 /// Linear regression with robust standard errors, for health trust
 regress health_trust age_dec, vce(robust)
 regress health_trust dummy_female, vce(robust)
-regress health_trust european_dummy, vce(robust)
-regress health_trust maori_dummy, vce(robust)
-regress health_trust asian_dummy, vce(robust)
-regress health_trust pacific_dummy, vce(robust)
-regress health_trust MELAA_dummy, vce(robust)
-regress health_trust other_dummy, vce(robust)
+regress health_trust i.ethnicity_dummies, vce(robust)
 regress health_trust no_qualification, vce(robust)
 regress health_trust school_qualification, vce(robust)
 regress health_trust postschool_qualification, vce(robust)
