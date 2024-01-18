@@ -133,17 +133,9 @@ replace migrant_dummies = 2 if migrant_status == "2" | migrant_status == "3"
 replace migrant_dummies = 3 if migrant_status == "4" | migrant_status == "5" | migrant_status == "6"
 
 
-cap drop employed_dummy
-generate employed_dummy = 0
-replace employed_dummy = 1 if labour_force_status == 1
 
-generate unemployed_dummy = 0
-replace unemployed_dummy = 1 if labour_force_status == 2
-
+**** Education ****
 destring education, replace
-
-
-**** Education
 * No qualification = 0, which I turned into 1
 * School qualification = 1,2,3 - which I will turn into 2
 * Post_school qualification = 4,5,6, which I will turn into 3
@@ -210,8 +202,7 @@ regress vax_status_10_10 deprivation_index_decile, vce(robust)
 regress vax_status_10_10 non_resident, vce(robust)
 regress vax_status_10_10 disabled, vce(robust)
 regress vax_status_10_10 on_benefit, vce(robust)
-regress vax_status_10_10 employed_dummy, vce(robust)
-regress vax_status_10_10 unemployed_dummy, vce(robust)
+regress vax_status_10_10 i.labour_force_status, vce(robust)
 regress vax_status_10_10 x2020_total_earnings, vce(robust)
 regress vax_status_10_10 log_2020_earnings, vce(robust)
 regress vax_status_10_10 life_satisfaction, vce(robust)
@@ -248,8 +239,7 @@ logistic vax_status_10_10 trust_combined, vce(robust)
 logistic vax_status_10_10 dummy_female, vce(robust)
 logistic vax_status_10_10 age_dec, vce(robust)
 logistic vax_status_10_10 x2020_total_earnings, vce(robust)
-logistic vax_status_10_10 employed_dummy, vce(robust)
-logistic vax_status_10_10 unemployed_dummy, vce(robust)
+logistic vax_status_10_10 i.labour_force_status, vce(robust)
 logistic vax_status_10_10 on_benefit, vce(robust)
 logistic vax_status_10_10 x2020_total_earnings, vce(robust)
 
@@ -302,8 +292,7 @@ regress xfirst_vaccinated_week trust_combined age_dec, vce(robust)
 regress xfirst_vaccinated_week age_dec, vce(robust)
 regress xfirst_vaccinated_week dummy_female age_dec, vce(robust)
 regress xfirst_vaccinated_week x2020_total_earnings age_dec, vce(robust)
-regress xfirst_vaccinated_week employed_dummy age_dec, vce(robust)
-regress xfirst_vaccinated_week unemployed_dummy age_dec, vce(robust)
+regress xfirst_vaccinated_week i.labour_force_status age_dec, vce(robust)
 regress xfirst_vaccinated_week on_benefit age_dec, vce(robust)
 
 *Highest Qualification 
@@ -356,8 +345,7 @@ regress xfinal_vaccinated_week trust_combined age_dec, vce(robust)
 regress xfinal_vaccinated_week age_dec, vce(robust)
 regress xfinal_vaccinated_week dummy_female age_dec, vce(robust)
 regress xfinal_vaccinated_week x2020_total_earnings age_dec, vce(robust)
-regress xfinal_vaccinated_week employed_dummy age_dec, vce(robust)
-regress xfinal_vaccinated_week unemployed_dummy age_dec, vce(robust)
+regress xfinal_vaccinated_week i.labour_force_status age_dec, vce(robust)
 regress xfinal_vaccinated_week on_benefit age_dec, vce(robust)
 
 *Highest Qualification 
@@ -410,8 +398,7 @@ regress general_trust deprivation_index_decile, vce(robust)
 regress general_trust non_resident, vce(robust)
 regress general_trust disabled, vce(robust)
 regress general_trust on_benefit, vce(robust)
-regress general_trust employed_dummy, vce(robust)
-regress general_trust unemployed_dummy, vce(robust)
+regress general_trust i.labour_force_status, vce(robust)
 regress general_trust x2020_total_earnings, vce(robust)
 regress general_trust log_2020_earnings, vce(robust)
 regress general_trust life_satisfaction, vce(robust)
@@ -443,8 +430,7 @@ regress health_trust deprivation_index_decile, vce(robust)
 regress health_trust non_resident, vce(robust)
 regress health_trust disabled, vce(robust)
 regress health_trust on_benefit, vce(robust)
-regress health_trust employed_dummy, vce(robust)
-regress health_trust unemployed_dummy, vce(robust)
+regress health_trust i.labour_force_status, vce(robust)
 regress health_trust x2020_total_earnings, vce(robust)
 regress health_trust log_2020_earnings, vce(robust)
 regress health_trust life_satisfaction, vce(robust)
@@ -465,12 +451,7 @@ regress health_trust neighbour_queer, vce(robust)
 /// Linear regression with robust standard errors, for media trust
 regress media_trust age_dec, vce(robust)
 regress media_trust dummy_female, vce(robust)
-regress media_trust european_dummy, vce(robust)
-regress media_trust maori_dummy, vce(robust)
-regress media_trust asian_dummy, vce(robust)
-regress media_trust pacific_dummy, vce(robust)
-regress media_trust MELAA_dummy, vce(robust)
-regress media_trust other_dummy, vce(robust)
+regress media_trust i.ethnicity_dummies, vce(robust)
 regress media_trust no_qualification, vce(robust)
 regress media_trust school_qualification, vce(robust)
 regress media_trust postschool_qualification, vce(robust)
@@ -481,8 +462,7 @@ regress media_trust deprivation_index_decile, vce(robust)
 regress media_trust non_resident, vce(robust)
 regress media_trust disabled, vce(robust)
 regress media_trust on_benefit, vce(robust)
-regress media_trust employed_dummy, vce(robust)
-regress media_trust unemployed_dummy, vce(robust)
+regress media_trust i.labour_force_status, vce(robust)
 regress media_trust x2020_total_earnings, vce(robust)
 regress media_trust log_2020_earnings, vce(robust)
 regress media_trust life_satisfaction, vce(robust)
@@ -502,12 +482,7 @@ regress media_trust neighbour_queer, vce(robust)
 /// Linear regression with robust standard errors, for police trust
 regress police_trust age_dec, vce(robust)
 regress police_trust dummy_female, vce(robust)
-regress police_trust european_dummy, vce(robust)
-regress police_trust maori_dummy, vce(robust)
-regress police_trust asian_dummy, vce(robust)
-regress police_trust pacific_dummy, vce(robust)
-regress police_trust MELAA_dummy, vce(robust)
-regress police_trust other_dummy, vce(robust)
+regress police_trust i.ethnicity_dummies, vce(robust)
 regress police_trust no_qualification, vce(robust)
 regress police_trust school_qualification, vce(robust)
 regress police_trust postschool_qualification, vce(robust)
@@ -518,8 +493,7 @@ regress police_trust deprivation_index_decile, vce(robust)
 regress police_trust non_resident, vce(robust)
 regress police_trust disabled, vce(robust)
 regress police_trust on_benefit, vce(robust)
-regress police_trust employed_dummy, vce(robust)
-regress police_trust unemployed_dummy, vce(robust)
+regress police_trust i.labour_force_status, vce(robust)
 regress police_trust x2020_total_earnings, vce(robust)
 regress police_trust log_2020_earnings, vce(robust)
 regress police_trust life_satisfaction, vce(robust)
@@ -539,12 +513,7 @@ regress police_trust neighbour_queer, vce(robust)
 /// Linear regression with robust standard errors, for parliament_trust trust
 regress parliament_trust age_dec, vce(robust)
 regress parliament_trust dummy_female, vce(robust)
-regress parliament_trust european_dummy, vce(robust)
-regress parliament_trust maori_dummy, vce(robust)
-regress parliament_trust asian_dummy, vce(robust)
-regress parliament_trust pacific_dummy, vce(robust)
-regress parliament_trust MELAA_dummy, vce(robust)
-regress parliament_trust other_dummy, vce(robust)
+regress parliament_trust i.ethnicity_dummies, vce(robust)
 regress parliament_trust no_qualification, vce(robust)
 regress parliament_trust school_qualification, vce(robust)
 regress parliament_trust postschool_qualification, vce(robust)
@@ -555,8 +524,7 @@ regress parliament_trust deprivation_index_decile, vce(robust)
 regress parliament_trust non_resident, vce(robust)
 regress parliament_trust disabled, vce(robust)
 regress parliament_trust on_benefit, vce(robust)
-regress parliament_trust employed_dummy, vce(robust)
-regress parliament_trust unemployed_dummy, vce(robust)
+regress parliament_trust i.labour_force_status, vce(robust)
 regress parliament_trust x2020_total_earnings, vce(robust)
 regress parliament_trust log_2020_earnings, vce(robust)
 regress parliament_trust life_satisfaction, vce(robust)
@@ -577,47 +545,47 @@ regress parliament_trust neighbour_queer, vce(robust)
 ////// Lienar Regressions for Trust
 regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined
 
-regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec european_dummy maori_dummy pacific_dummy asian_dummy MELAA_dummy vote_in_last_election no_qualification school_qualification postschool_qualification undergrad_qualification deprivation_index_decile employed_dummy unemployed_dummy life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled migrant
+regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election no_qualification school_qualification postschool_qualification undergrad_qualification deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled migrant
 
-regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec european_dummy maori_dummy pacific_dummy asian_dummy MELAA_dummy vote_in_last_election no_qualification school_qualification postschool_qualification undergrad_qualification deprivation_index_decile employed_dummy unemployed_dummy life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled migrant
-
-
-regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec european_dummy maori_dummy pacific_dummy asian_dummy MELAA_dummy vote_in_last_election no_qualification school_qualification postschool_qualification undergrad_qualification deprivation_index_decile employed_dummy unemployed_dummy life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled migrant
+regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election no_qualification school_qualification postschool_qualification undergrad_qualification deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled migrant
 
 
-regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec european_dummy maori_dummy asian_dummy MELAA_dummy vote_in_last_election school_qualification postschool_qualification undergrad_qualification deprivation_index_decile employed_dummy life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_mental neighbour_language migrant
+regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election no_qualification school_qualification postschool_qualification undergrad_qualification deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled migrant
 
 
-regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec european_dummy maori_dummy asian_dummy vote_in_last_election school_qualification undergrad_qualification deprivation_index_decile employed_dummy health_status discrimination crime_concerns neighbour_queer neighbour_mental neighbour_language migrant
+regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election school_qualification postschool_qualification undergrad_qualification deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_mental neighbour_language migrant
 
 
-regress vax_status_10_10 general_trust police_trust media_trust trust_combined age_dec european_dummy maori_dummy asian_dummy vote_in_last_election school_qualification undergrad_qualification deprivation_index_decile employed_dummy health_status crime_concerns neighbour_queer neighbour_mental neighbour_language migrant
-
-regress vax_status_10_10 police_trust media_trust trust_combined age_dec european_dummy maori_dummy asian_dummy vote_in_last_election deprivation_index_decile employed_dummy neighbour_queer migrant
+regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election school_qualification undergrad_qualification deprivation_index_decile i.labour_force_status health_status discrimination crime_concerns neighbour_queer neighbour_mental neighbour_language migrant
 
 
-logistic vax_status_10_10 police_trust media_trust trust_combined age_dec european_dummy maori_dummy asian_dummy vote_in_last_election deprivation_index_decile employed_dummy neighbour_queer migrant
+regress vax_status_10_10 general_trust police_trust media_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election school_qualification undergrad_qualification deprivation_index_decile i.labour_force_status health_status crime_concerns neighbour_queer neighbour_mental neighbour_language migrant
 
-logistic vax_status_10_10 police_trust media_trust general_trust courts_trust parliament_trust health_trust education_trust age_dec dummy_female employed_dummy undergrad_qualification european_dummy maori_dummy health_status migrant x2020_total_earnings discrimination
+regress vax_status_10_10 police_trust media_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election deprivation_index_decile i.labour_force_status neighbour_queer migrant
 
-logistic xfinal_vaccinated_week police_trust media_trust general_trust courts_trust parliament_trust health_trust education_trust age_dec dummy_female employed_dummy undergrad_qualification european_dummy maori_dummy health_status migrant x2020_total_earnings discrimination
+
+logistic vax_status_10_10 police_trust media_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election deprivation_index_decile i.labour_force_status neighbour_queer migrant
+
+logistic vax_status_10_10 police_trust media_trust general_trust courts_trust parliament_trust health_trust education_trust age_dec dummy_female i.labour_force_status undergrad_qualification i.ethnicity_dummies health_status migrant x2020_total_earnings discrimination
+
+logistic xfinal_vaccinated_week police_trust media_trust general_trust courts_trust parliament_trust health_trust education_trust age_dec dummy_female i.labour_force_status undergrad_qualification i.ethnicity_dummies health_status migrant x2020_total_earnings discrimination
 
 regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined
 
-regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec age_dec dummy_female employed_dummy undergrad_qualification european_dummy maori_dummy x2020_total_earnings disabled discrimination migrant
+regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec age_dec dummy_female i.labour_force_status undergrad_qualification i.ethnicity_dummies x2020_total_earnings disabled discrimination migrant
 
 
-regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female employed_dummy undergrad_qualification european_dummy maori_dummy health_status migrant x2020_total_earnings discrimination
+regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.labour_force_status undergrad_qualification i.ethnicity_dummies health_status migrant x2020_total_earnings discrimination
 
-regress xfinal_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female employed_dummy undergrad_qualification european_dummy maori_dummy health_status migrant x2020_total_earnings discrimination
+regress xfinal_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.labour_force_status undergrad_qualification i.ethnicity_dummies health_status migrant x2020_total_earnings discrimination
 
 
 **** Linear Regression for First Vax Event:
 
-regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec european_dummy maori_dummy asian_dummy deprivation_index_decile employed_dummy health_status discrimination neighbour_queer migrant
+regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec i.ethnicity_dummies asian_dummy deprivation_index_decile i.labour_force_status health_status discrimination neighbour_queer migrant
 
 
-regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female employed_dummy undergrad_qualification european_dummy discrimination migrant
+regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.labour_force_status undergrad_qualification i.ethnicity_dummies discrimination migrant
 
 vif 
 
