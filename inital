@@ -47,11 +47,6 @@ rename prioritised_ethnicity ethnicity
 
  replace health_status = "." if health_status == "NA" 
  destring health_status, replace
- replace health_status = 1 if health_status == 15
- replace health_status = 2 if health_status == 14
- replace health_status = 3 if health_status == 13
- replace health_status = 4 if health_status == 12
- replace health_status = 5 if health_status == 11
  
  
 corr general_trust police_trust education_trust media_trust courts_trust parliament_trust health_trust trust_combined dummy_female age_dec x2020_total_earnings labour_force_status on_benefit education ethnicity_dummies disabled vote_in_last_election life_satisfaction health_status migrant_dummies deprivation_index_decile crime_concerns being_yourself discrimination neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled
@@ -64,61 +59,25 @@ corr general_trust police_trust education_trust media_trust courts_trust parliam
  *** Acceptance of LGBT+
  replace neighbour_queer = "." if neighbour_queer == "NA" 
  destring neighbour_queer, replace
- replace neighbour_queer = 1 if neighbour_queer == 15
- replace neighbour_queer = 2 if neighbour_queer == 14
- replace neighbour_queer = 3 if neighbour_queer == 13
- replace neighbour_queer = 4 if neighbour_queer == 12
- replace neighbour_queer = 5 if neighbour_queer == 11
  
  replace neighbour_ethnicity = "." if neighbour_ethnicity == "NA" 
  destring neighbour_ethnicity, replace
- replace neighbour_ethnicity = 1 if neighbour_ethnicity == 15
- replace neighbour_ethnicity = 2 if neighbour_ethnicity == 14
- replace neighbour_ethnicity = 3 if neighbour_ethnicity == 13
- replace neighbour_ethnicity = 4 if neighbour_ethnicity == 12
- replace neighbour_ethnicity = 5 if neighbour_ethnicity == 11
  
  replace neighbour_mental = "." if neighbour_mental == "NA" 
  destring neighbour_mental, replace
- replace neighbour_mental = 1 if neighbour_mental == 15
- replace neighbour_mental = 2 if neighbour_mental == 14
- replace neighbour_mental = 3 if neighbour_mental == 13
- replace neighbour_mental = 4 if neighbour_mental == 12
- replace neighbour_mental = 5 if neighbour_mental == 11
  
-  replace neighbour_language = "." if neighbour_language == "NA" 
+ replace neighbour_language = "." if neighbour_language == "NA" 
  destring neighbour_language, replace
- replace neighbour_language = 1 if neighbour_language == 15
- replace neighbour_language = 2 if neighbour_language == 14
- replace neighbour_language = 3 if neighbour_language == 13
- replace neighbour_language = 4 if neighbour_language == 12
- replace neighbour_language = 5 if neighbour_language == 11
  
-  replace neighbour_disabled = "." if neighbour_disabled == "NA" 
+ replace neighbour_disabled = "." if neighbour_disabled == "NA" 
  destring neighbour_disabled, replace
- replace neighbour_disabled = 1 if neighbour_disabled == 15
- replace neighbour_disabled = 2 if neighbour_disabled == 14
- replace neighbour_disabled = 3 if neighbour_disabled == 13
- replace neighbour_disabled = 4 if neighbour_disabled == 12
- replace neighbour_disabled = 5 if neighbour_disabled == 11
  
  
  replace neighbour_immigrant = "." if neighbour_immigrant == "NA" 
  destring neighbour_immigrant, replace
- replace neighbour_immigrant = 1 if neighbour_immigrant == 15
- replace neighbour_immigrant = 2 if neighbour_immigrant == 14
- replace neighbour_immigrant = 3 if neighbour_immigrant == 13
- replace neighbour_immigrant = 4 if neighbour_immigrant == 12
- replace neighbour_immigrant = 5 if neighbour_immigrant == 11
- 
  
  replace being_yourself = "." if being_yourself == "NA" 
  destring being_yourself, replace
- replace being_yourself = 1 if being_yourself == 15
- replace being_yourself = 2 if being_yourself == 14
- replace being_yourself = 3 if being_yourself == 13
- replace being_yourself = 4 if being_yourself == 12
- replace being_yourself = 5 if being_yourself == 11
  
 
  replace ethnicity = "." if ethnicity == "NA" 
@@ -160,33 +119,6 @@ replace NZ_born = 1 if migrant_status == "1"
 generate migrant = 0
 replace migrant = 1 if migrant_status == "4" | migrant_status == "5" | migrant_status == "6"
  
- 
- 
- generate outputting_trusts_bs = 0
- replace outputting_trusts_bs = trust_combined 
- replace outputting_trusts_bs = 0 if outputting_trusts_bs == 0.25
- replace outputting_trusts_bs = 1 if outputting_trusts_bs == 0.75
- replace outputting_trusts_bs = 1 if outputting_trusts_bs == 1.25
- replace outputting_trusts_bs = 2 if outputting_trusts_bs == 1.75
- replace outputting_trusts_bs = 2 if outputting_trusts_bs == 2.25
- replace outputting_trusts_bs = 3 if outputting_trusts_bs == 2.75
- replace outputting_trusts_bs = 3 if outputting_trusts_bs == 3.25
- replace outputting_trusts_bs = 4 if outputting_trusts_bs == 3.75
- replace outputting_trusts_bs = 4 if outputting_trusts_bs == 4.25
- replace outputting_trusts_bs = 5 if outputting_trusts_bs == 4.75
- replace outputting_trusts_bs = 5 if outputting_trusts_bs == 5.25
- replace outputting_trusts_bs = 6 if outputting_trusts_bs == 5.75
- replace outputting_trusts_bs = 6 if outputting_trusts_bs == 6.25
- replace outputting_trusts_bs = 7 if outputting_trusts_bs == 6.75
- replace outputting_trusts_bs = 7 if outputting_trusts_bs == 7.25
- replace outputting_trusts_bs = 8 if outputting_trusts_bs == 7.75
- replace outputting_trusts_bs = 8 if outputting_trusts_bs == 8.25
- replace outputting_trusts_bs = 9 if outputting_trusts_bs == 8.75
- replace outputting_trusts_bs = 9 if outputting_trusts_bs == 9.25
- replace outputting_trusts_bs = 10 if outputting_trusts_bs ==9.75
-
- 
- 
  **** Migrant Status
 * 1 NZ-born with NZ-born parents 
 * 2 NZ-born with at least one parent born overseas
@@ -200,24 +132,6 @@ replace migrant_dummies = 1 if migrant_status == "1"
 replace migrant_dummies = 2 if migrant_status == "2" | migrant_status == "3"
 replace migrant_dummies = 3 if migrant_status == "4" | migrant_status == "5" | migrant_status == "6"
 
- 
-generate european_dummy = 1 if ethnicity == "E"
-replace european_dummy = 0 if european_dummy ==.
-
-generate maori_dummy = 1 if ethnicity == "M"
-replace maori_dummy = 0 if maori_dummy ==.
-
-generate asian_dummy = 1 if ethnicity == "A"
-replace asian_dummy = 0 if asian_dummy ==.
-
-generate pacific_dummy = 1 if ethnicity == "P"
-replace pacific_dummy = 0 if pacific_dummy ==.
-
-generate MELAA_dummy = 1 if ethnicity == "R"
-replace MELAA_dummy = 0 if MELAA_dummy ==.
- 
-generate other_dummy = 1 if ethnicity == "O"
-replace other_dummy = 0 if other_dummy ==.
 
 cap drop employed_dummy
 generate employed_dummy = 0
