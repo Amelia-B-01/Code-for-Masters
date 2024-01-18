@@ -113,11 +113,6 @@ destring labour_force_status, replace
  destring gss_survey_date, replace
  destring dhb_domicile, replace
 
-generate NZ_born = 0
-replace NZ_born = 1 if migrant_status == "1"
-
-generate migrant = 0
-replace migrant = 1 if migrant_status == "4" | migrant_status == "5" | migrant_status == "6"
  
  **** Migrant Status
 * 1 NZ-born with NZ-born parents 
@@ -127,12 +122,11 @@ replace migrant = 1 if migrant_status == "4" | migrant_status == "5" | migrant_s
 * 5 Medium-term migrant
 * 6 Long-term migrant
 
-generate migrant_dummies = 0
-replace migrant_dummies = 1 if migrant_status == "1" 
-replace migrant_dummies = 2 if migrant_status == "2" | migrant_status == "3"
-replace migrant_dummies = 3 if migrant_status == "4" | migrant_status == "5" | migrant_status == "6"
+*** These variables have been condensed into 1 (NZ-born with NZ-born parents) 2 (NZ-born with either at least one parent born overseas OR with parents birthplace unknown) 3 (recent, medium-term or long-term migrant). 
 
-
+replace migrant_status = 1 if migrant_status == "1" 
+replace migrant_status = 2 if migrant_status == "2" | migrant_status == "3"
+replace migrant_status = 3 if migrant_status == "4" | migrant_status == "5" | migrant_status == "6"
 
 **** Education ****
 destring education, replace
@@ -188,8 +182,7 @@ regress vax_status_10_10 health_status, vce(robust)
 regress vax_status_10_10 discrimination, vce(robust)
 regress vax_status_10_10 crime_concerns, vce(robust)
 regress vax_status_10_10 being_yourself, vce(robust)
-regress vax_status_10_10 NZ_born, vce(robust)
-regress vax_status_10_10 migrant, vce(robust)
+regress vax_status_10_10 i.migrant_status, vce(robust)
 
 regress vax_status_10_10 neighbour_disabled, vce(robust)
 regress vax_status_10_10 neighbour_ethnicity, vce(robust)
@@ -230,8 +223,7 @@ logistic vax_status_10_10 disabled, vce(robust)
 logistic vax_status_10_10 vote_in_last_election, vce(robust)
 logistic vax_status_10_10 life_satisfaction, vce(robust)
 logistic vax_status_10_10 health_status, vce(robust)
-logistic vax_status_10_10 NZ_born, vce(robust)
-logistic vax_status_10_10 migrant, vce(robust)
+logistic vax_status_10_10 i.migrant_status, vce(robust)
 
 ** Social Characteristics
 logistic vax_status_10_10 deprivation_index_decile, vce(robust)
@@ -278,8 +270,7 @@ regress xfirst_vaccinated_week age_dec disabled, vce(robust)
 regress xfirst_vaccinated_week age_dec vote_in_last_election, vce(robust)
 regress xfirst_vaccinated_week age_dec life_satisfaction, vce(robust)
 regress xfirst_vaccinated_week age_dec health_status, vce(robust)
-regress xfirst_vaccinated_week age_dec NZ_born, vce(robust)
-regress xfirst_vaccinated_week age_dec migrant, vce(robust)
+regress xfirst_vaccinated_week age_dec i.migrant_status, vce(robust)
 
 ** Social Characteristics
 regress xfirst_vaccinated_week age_dec deprivation_index_decile, vce(robust)
@@ -317,8 +308,7 @@ regress xfinal_vaccinated_week age_dec disabled, vce(robust)
 regress xfinal_vaccinated_week age_dec vote_in_last_election, vce(robust)
 regress xfinal_vaccinated_week age_dec life_satisfaction, vce(robust)
 regress xfinal_vaccinated_week age_dec health_status, vce(robust)
-regress xfinal_vaccinated_week age_dec NZ_born, vce(robust)
-regress xfinal_vaccinated_week age_dec migrant, vce(robust)
+regress xfinal_vaccinated_week age_dec i.migrant_status, vce(robust)
 regress xfinal_vaccinated_week age_dec deprivation_index_decile, vce(robust)
 regress xfinal_vaccinated_week age_dec crime_concerns, vce(robust)
 regress xfinal_vaccinated_week age_dec being_yourself, vce(robust)
@@ -334,70 +324,70 @@ regress xfinal_vaccinated_week age_dec neighbour_immigrant, vce(robust)
 ////// Lienar Regressions for Trust
 regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined
 
-regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled migrant
+regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled i.migrant_status
 
-regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled migrant
-
-
-regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled migrant
+regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled i.migrant_status
 
 
-regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_mental neighbour_language migrant
+regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_ethnicity neighbour_mental neighbour_language neighbour_disabled i.migrant_status
 
 
-regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status health_status discrimination crime_concerns neighbour_queer neighbour_mental neighbour_language migrant
+regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status life_satisfaction health_status discrimination crime_concerns being_yourself neighbour_queer neighbour_mental neighbour_language i.migrant_status
 
 
-regress vax_status_10_10 general_trust police_trust media_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status health_status crime_concerns neighbour_queer neighbour_mental neighbour_language migrant
-
-regress vax_status_10_10 police_trust media_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election deprivation_index_decile i.labour_force_status neighbour_queer migrant
+regress vax_status_10_10 general_trust police_trust media_trust health_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status health_status discrimination crime_concerns neighbour_queer neighbour_mental neighbour_language i.migrant_status
 
 
-logistic vax_status_10_10 police_trust media_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election deprivation_index_decile i.labour_force_status neighbour_queer migrant
+regress vax_status_10_10 general_trust police_trust media_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election i.education_dummies deprivation_index_decile i.labour_force_status health_status crime_concerns neighbour_queer neighbour_mental neighbour_language i.migrant_status
 
-logistic vax_status_10_10 police_trust media_trust general_trust courts_trust parliament_trust health_trust education_trust age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies health_status migrant x2020_total_earnings discrimination
+regress vax_status_10_10 police_trust media_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election deprivation_index_decile i.labour_force_status neighbour_queer i.migrant_status
 
-logistic xfinal_vaccinated_week police_trust media_trust general_trust courts_trust parliament_trust health_trust education_trust age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies health_status migrant x2020_total_earnings discrimination
+
+logistic vax_status_10_10 police_trust media_trust trust_combined age_dec i.ethnicity_dummies vote_in_last_election deprivation_index_decile i.labour_force_status neighbour_queer i.migrant_status
+
+logistic vax_status_10_10 police_trust media_trust general_trust courts_trust parliament_trust health_trust education_trust age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies health_status i.migrant_status x2020_total_earnings discrimination
+
+logistic xfinal_vaccinated_week police_trust media_trust general_trust courts_trust parliament_trust health_trust education_trust age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies health_status i.migrant_status x2020_total_earnings discrimination
 
 regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined
 
-regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies x2020_total_earnings disabled discrimination migrant
+regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies x2020_total_earnings disabled discrimination i.migrant_status
 
 
-regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies health_status migrant x2020_total_earnings discrimination
+regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies health_status i.migrant_status x2020_total_earnings discrimination
 
-regress xfinal_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies health_status migrant x2020_total_earnings discrimination
+regress xfinal_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies health_status i.migrant_status x2020_total_earnings discrimination
 
 
 **** Linear Regression for First Vax Event:
-regress xfirst_vaccinated_week general_trust police_trust health_trust age_dec i.ethnicity_dummies deprivation_index_decile i.labour_force_status health_status discrimination neighbour_queer migrant
-regress xfirst_vaccinated_week general_trust police_trust health_trust age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies discrimination migrant
+regress xfirst_vaccinated_week general_trust police_trust health_trust age_dec i.ethnicity_dummies deprivation_index_decile i.labour_force_status health_status discrimination neighbour_queer i.migrant_status
+regress xfirst_vaccinated_week general_trust police_trust health_trust age_dec dummy_female i.labour_force_status i.education_dummies i.ethnicity_dummies discrimination i.migrant_status
 vif 
 
 ****** Actual Proper Dummy Variables
 regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined 
 regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec
 
-regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies
+regress xfirst_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
 
 vif
 
-regress xfinal_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies
+regress xfinal_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
 
 
 *** Final Vax Event
 regress xfinal_vaccinated_week general_trust police_trust health_trust trust_combined 
 regress xfinal_vaccinated_week general_trust police_trust health_trust trust_combined age_dec
-regress xfinal_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies deprivation_index_decile i.migrant_dummies
+regress xfinal_vaccinated_week general_trust police_trust health_trust trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies deprivation_index_decile i.migrant_status
 
 
 **** Vax Status 10/10
 regress vax_status_10_10 general_trust police_trust health_trust trust_combined 
-regress vax_status_10_10 general_trust police_trust health_trust trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies
+regress vax_status_10_10 general_trust police_trust health_trust trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
 
 **** Vax Status 10/10 Logistic Regressions
 logistic vax_status_10_10 general_trust police_trust health_trust trust_combined 
-logistic vax_status_10_10 general_trust police_trust health_trust trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies
+logistic vax_status_10_10 general_trust police_trust health_trust trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
 
 
 
@@ -476,253 +466,134 @@ regress xfinal_vaccinated_week health_trust if gss_survey_date == 2016
 regress xfinal_vaccinated_week health_trust if gss_survey_date == 2018
 
 
-** First vaccination event against single trust metrics - GENERAL TRUST
-
-regress xfirst_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfirst_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfirst_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfirst_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** First vaccination event against single trust metrics - Police TRUST
-
-regress xfirst_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfirst_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfirst_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfirst_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** First vaccination event against single trust metrics - Media TRUST
-
-regress xfirst_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfirst_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfirst_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfirst_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** First vaccination event against single trust metrics - Parliament TRUST
-
-regress xfirst_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfirst_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfirst_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfirst_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** First vaccination event against single trust metrics - Courts TRUST
-
-regress xfirst_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfirst_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfirst_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfirst_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** First vaccination event against single trust metrics - Health TRUST
-
-regress xfirst_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfirst_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfirst_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfirst_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** First vaccination event against single trust metrics - Education TRUST
-
-regress xfirst_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfirst_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfirst_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfirst_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** First vaccination event against single trust metrics - Combined TRUST
-
-regress xfirst_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfirst_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfirst_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfirst_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-
-
-
-
-
-** final vaccination event against single trust metrics - GENERAL TRUST
-
-regress xfinal_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfinal_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfinal_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfinal_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** Final vaccination event against single trust metrics - Police TRUST
-
-regress xfinal_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfinal_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfinal_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfinal_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** Final vaccination event against single trust metrics - Media TRUST
-
-regress xfinal_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfinal_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfinal_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfinal_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** Final vaccination event against single trust metrics - Parliament TRUST
-
-regress xfinal_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfinal_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfinal_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfinal_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** Final vaccination event against single trust metrics - Courts TRUST
-
-regress xfinal_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfinal_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfinal_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfinal_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** Final vaccination event against single trust metrics - Health TRUST
-
-regress xfinal_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfinal_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfinal_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfinal_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** Final vaccination event against single trust metrics - Education TRUST
-
-regress xfinal_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfinal_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfinal_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfinal_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** Final vaccination event against single trust metrics - Combined TRUST
-
-regress xfinal_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress xfinal_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress xfinal_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress xfinal_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-
-
-
-
-
-
-** vax status against single trust metrics - GENERAL TRUST
-
-regress vax_status_10_10 general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress vax_status_10_10 general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress vax_status_10_10 general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress vax_status_10_10 general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** vax_status_10_10 against single trust metrics - Police TRUST
-
-regress vax_status_10_10 police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress vax_status_10_10 police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress vax_status_10_10 police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress vax_status_10_10 police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** vax_status_10_10 against single trust metrics - Media TRUST
-
-regress vax_status_10_10 media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress vax_status_10_10 media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress vax_status_10_10 media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress vax_status_10_10 media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-**vax_status_10_10 against single trust metrics - Parliament TRUST
-
-regress vax_status_10_10 parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress vax_status_10_10 parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress vax_status_10_10 parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress vax_status_10_10 parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** vax_status_10_10 against single trust metrics - Courts TRUST
-
-regress vax_status_10_10 courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress vax_status_10_10 courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress vax_status_10_10 courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress vax_status_10_10 courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-** vax_status_10_10 against single trust metrics - Health TRUST
-
-regress vax_status_10_10 health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress vax_status_10_10 health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress vax_status_10_10 health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress vax_status_10_10 health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-**vax_status_10_10 against single trust metrics - Education TRUST
-
-regress vax_status_10_10 education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress vax_status_10_10 education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress vax_status_10_10 education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress vax_status_10_10 education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
-
-**vax_status_10_10 against single trust metrics - Combined TRUST
-
-regress vax_status_10_10 trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies 
-
-regress vax_status_10_10 trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2014
- 
-regress vax_status_10_10 trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2016
-
-regress vax_status_10_10 trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_dummies if gss_survey_date == 2018
+**** First vaccination event against general trust level ****
+regress xfirst_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfirst_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfirst_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfirst_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** First vaccination event against police trust level ****
+regress xfirst_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfirst_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfirst_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfirst_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** First vaccination event against media trust level ****
+regress xfirst_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status 
+regress xfirst_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfirst_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfirst_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** First vaccination event against Parliament trust level ****
+regress xfirst_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfirst_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfirst_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfirst_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** First vaccination event against courts trust level ****
+regress xfirst_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfirst_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfirst_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfirst_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** First vaccination event against health trust level ****
+regress xfirst_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfirst_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfirst_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfirst_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** First vaccination event against education trust level ****
+regress xfirst_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfirst_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfirst_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfirst_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Final vaccination event against general trust level ****
+regress xfinal_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfinal_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfinal_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfinal_vaccinated_week general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Final vaccination event against police trust level ****
+regress xfinal_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfinal_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfinal_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfinal_vaccinated_week police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Final vaccination event against media trust level ****
+regress xfinal_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfinal_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfinal_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfinal_vaccinated_week media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Final vaccination event against parliament trust level ****
+regress xfinal_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfinal_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfinal_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfinal_vaccinated_week parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Final vaccination event against courts trust level ****
+regress xfinal_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfinal_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfinal_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfinal_vaccinated_week courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Final vaccination event against health trust level ****
+regress xfinal_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfinal_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfinal_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfinal_vaccinated_week health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Final vaccination event against education trust level ****
+regress xfinal_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status 
+regress xfinal_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfinal_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfinal_vaccinated_week education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Final vaccination event against general trust level ****
+regress xfinal_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress xfinal_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress xfinal_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress xfinal_vaccinated_week trust_combined age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Vax status against general trust level ****
+regress vax_status_10_10 general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status 
+regress vax_status_10_10 general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress vax_status_10_10 general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress vax_status_10_10 general_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Vax status against police trust level ****
+regress vax_status_10_10 police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress vax_status_10_10 police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress vax_status_10_10 police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress vax_status_10_10 police_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Vax status against media trust level ****
+regress vax_status_10_10 media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress vax_status_10_10 media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress vax_status_10_10 media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress vax_status_10_10 media_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Vax status against parliament trust level ****
+regress vax_status_10_10 parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress vax_status_10_10 parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress vax_status_10_10 parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress vax_status_10_10 parliament_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Vax status against courts trust level ****
+regress vax_status_10_10 courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress vax_status_10_10 courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress vax_status_10_10 courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress vax_status_10_10 courts_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Vax status against health trust level ****
+regress vax_status_10_10 health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress vax_status_10_10 health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress vax_status_10_10 health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2016
+regress vax_status_10_10 health_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
+
+**** Vax status against educational trust level ****
+regress vax_status_10_10 education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status
+regress vax_status_10_10 education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2014
+regress vax_status_10_10 education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_statusif gss_survey_date == 2016
+regress vax_status_10_10 education_trust age_dec dummy_female i.ethnicity_dummies health_status i.labour_force_status i.education_dummies x2020_total_earnings deprivation_index_decile i.migrant_status if gss_survey_date == 2018
